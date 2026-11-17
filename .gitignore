@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C / C++ build artifacts
+*.exe
+*.obj
+*.o
+*.so
+*.dylib
+*.dll
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE and Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs and runtime artifacts
+*.log
+*.pid
+
+# Storage test data (keep directory structure with .gitkeep)
+storage/server_root/*
+!storage/server_root/.gitkeep
+storage/client_workspace/*
+!storage/client_workspace/.gitkeep
