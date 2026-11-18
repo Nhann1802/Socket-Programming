@@ -33,6 +33,28 @@ Desktop.ini
 *.log
 *.pid
 
+# LaTeX build and auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.nav
+*.out
+*.snm
+*.synctex*
+*.toc
+*.vrb
+*.xdv
+
+# Keep primary report and asset files in docs/
+!docs/*.tex
+!docs/*.pdf
+!docs/*.png
+!docs/*.md
+
 # Storage test data (keep directory structure with .gitkeep)
 storage/server_root/*
 !storage/server_root/.gitkeep

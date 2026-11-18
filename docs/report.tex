@@ -17,7 +17,7 @@
 \usepackage{tikz}
 \usepackage{tocloft}
 \usepackage[numbib, nottoc]{tocbibind}
-\usepackage[unicode, hidelinks]{hyperref} % Đặt sau cùng để không xung đột và ẩn khung đỏ quanh link
+\usepackage[unicode, hidelinks]{hyperref}
 \usetikzlibrary{shapes.geometric, arrows, positioning}
 
 % Header and Footer setup
@@ -37,31 +37,24 @@
 \definecolor{backcolour}{rgb}{0.96,0.96,0.96}
 
 \lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},   
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
-    numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
-    breakatwhitespace=false,         
-    breaklines=true,                 
-    captionpos=b,                    
-    keepspaces=true,                 
-    numbers=left,                    
-    numbersep=5pt,                  
-    showspaces=false,                
-    showstringspaces=false,
-    showtabs=false,                  
-    tabsize=2
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
 }
 \lstset{style=mystyle}
-
-\AtBeginDocument{
-    \renewcommand{\contentsname}{\LARGE \textbf{MỤC LỤC}}
-    \renewcommand{\listfigurename}{\textbf{DANH SÁCH HÌNH}}
-    \renewcommand{\listtablename}{\textbf{DANH SÁCH BẢNG}}
-    \renewcommand{\refname}{Tài liệu tham khảo}
-}
 
 % Section formatting
 \titleformat{\section}{\normalfont\Large\bfseries\color{blue!80!black}}{\thesection.}{1em}{}
@@ -71,19 +64,17 @@
 % ------------------------------------------------------------------------------
 % TÙY CHỈNH MỤC LỤC, DANH SÁCH HÌNH, DANH SÁCH BẢNG
 % ------------------------------------------------------------------------------
-% 1. Chỉnh cỡ chữ bự hơn (\LARGE) và đổi màu đồng bộ (blue!80!black)
 \renewcommand{\cfttoctitlefont}{\normalfont\LARGE\bfseries\color{blue!80!black}}
 \renewcommand{\cftloftitlefont}{\normalfont\LARGE\bfseries\color{blue!80!black}}
 \renewcommand{\cftlottitlefont}{\normalfont\LARGE\bfseries\color{blue!80!black}}
 
-% 2. Đổi tên tiêu đề (dùng AtBeginDocument để tránh gói vietnam ghi đè)
 \AtBeginDocument{
-    \renewcommand{\contentsname}{\LARGE \textbf{MỤC LỤC}}
-    \renewcommand{\listfigurename}{\textbf{DANH SÁCH HÌNH}}
-    \renewcommand{\listtablename}{\textbf{DANH SÁCH BẢNG}}
+	\renewcommand{\contentsname}{MỤC LỤC}
+	\renewcommand{\listfigurename}{DANH SÁCH HÌNH}
+	\renewcommand{\listtablename}{DANH SÁCH BẢNG}
+	\renewcommand{\refname}{Tài liệu tham khảo}
 }
 
-% 3. Định dạng đánh số 1., Hình 1., Bảng 1.
 \renewcommand{\cftsecaftersnum}{.}
 \renewcommand{\cftsubsecaftersnum}{.}
 \renewcommand{\cftsubsubsecaftersnum}{.}
@@ -103,176 +94,179 @@
 % DOCUMENT BEGIN
 % ==============================================================================
 \begin{document}
-
-% ------------------------------------------------------------------------------
-% COVER PAGE
-% ------------------------------------------------------------------------------
-\newgeometry{left=2.2cm, right=2.2cm, top=2.2cm, bottom=2.2cm}
-\begin{titlepage}
-    \begin{tikzpicture}[remember picture, overlay]
-    \draw[line width=1.5pt] 
-        ([xshift=1.8cm, yshift=-1.8cm]current page.north west) 
-        rectangle 
-        ([xshift=-1.8cm, yshift=1.8cm]current page.south east);
-        
-    \draw[line width=0.5pt] 
-        ([xshift=1.92cm, yshift=-1.92cm]current page.north west) 
-        rectangle 
-        ([xshift=-1.92cm, yshift=1.92cm]current page.south east);
-    \end{tikzpicture}
-
-    \centering
-    {\Large \textbf{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}}\\
-    {\Large \textbf{TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN}}\\
-    {\large KHOA CÔNG NGHỆ THÔNG TIN}\\
-    {\large MÔN MẠNG MÁY TÍNH}\\
-
-    \includegraphics[width=0.64\textwidth]{HCMUS.png}\\
-
-    {\large \bfseries \textbf{BÁO CÁO ĐỒ ÁN THỰC HÀNH}}\\[0.1cm]
-    {\fontsize{20}{24}\selectfont \textbf{ỨNG DỤNG LAN CHAT \& FILE SHARING}}\\[0.25cm]
-
-    \renewcommand{\arraystretch}{1.35} 
-    \begin{tabular}{r l l}
-        \textbf{Giảng viên hướng dẫn:} & ThS. Chung Thùy Linh & \\
-                                       & ThS. Huỳnh Thụy Bảo Trân & \\[0.3cm]
-        \textbf{Sinh viên thực hiện:}   & Nguyễn Đăng Huỳnh Nhân & -- \textbf{MSSV:} 25127221 \\
-                                       & Đào Vạn Đức            & -- \textbf{MSSV:} 25127036 \\
-                                       & Nguyễn Minh Huân       & -- \textbf{MSSV:} 25127050 \\[0.3cm]
-        \textbf{Lớp:}                  & 25C04 &
-    \end{tabular}
-
-    \vfill
-    {\large \textbf{Thành phố Hồ Chí Minh, Năm 2026}}
-\end{titlepage}
-\restoregeometry
-
-% ------------------------------------------------------------------------------
-% TABLE OF CONTENTS
-% ------------------------------------------------------------------------------
-\clearpage
-\pagenumbering{roman}
-\tableofcontents
-\clearpage
-\phantomsection
-\listoffigures
-\phantomsection
-\listoftables
-\clearpage
-\pagenumbering{arabic}
-% ------------------------------------------------------------------------------
-% SECTION 1: INTRODUCTION
-% ------------------------------------------------------------------------------
-\section{Giới thiệu Tổng quan}
-
-Trong các mạng máy tính nội bộ (Local Area Network - LAN), nhu cầu liên lạc trực tiếp và chia sẻ tài nguyên giữa các thiết bị đầu cuối mà không phụ thuộc vào máy chủ trung tâm (Serverless / Peer-to-Peer - P2P) là một chủ đề cơ bản và quan trọng. 
-
-Đồ án \textbf{LAN Chat \& File Sharing} xây dựng một ứng dụng giao tiếp ngang hàng trên nền giao diện dòng lệnh (CLI). Mỗi thành viên tham gia mạng chạy cùng một phần mềm, tự động nhận diện sự hiện diện của các thành viên khác trong mạng LAN, quản lý trạng thái làm việc (\texttt{online} hoặc \texttt{away}), thiết lập các phiên trò chuyện tức thời (chat) và truyền tập tin dữ liệu (file transfer).
-
-Đặc thù cốt lõi của đồ án là sự kết hợp chặt chẽ giữa hai giao thức tầng giao vận (Transport Layer):
-\begin{itemize}
-    \item \textbf{UDP (User Datagram Protocol):} Đóng vai trò là kênh khám phá (Discovery Plane). Do tính chất không kết nối (connectionless), hỗ trợ Broadcast hiệu quả, UDP được sử dụng để phát hiện sự hiện diện của các peer và định kỳ kiểm tra trạng thái hoạt động (Heartbeat).
-    \item \textbf{TCP (Transmission Control Protocol):} Đóng vai trò là kênh dữ liệu và điều khiển tin cậy (Data \& Chat Plane). TCP đảm bảo tính toàn vẹn (integrity), đúng thứ tự (ordered), và không làm mất dữ liệu tin nhắn cũng như các khối nhị phân của tập tin.
-\end{itemize}
-
-% ------------------------------------------------------------------------------
-% SECTION: SYSTEM ARCHITECTURE
-% ------------------------------------------------------------------------------
-\section{Kiến trúc Hệ thống}
-
-\subsection{Mô hình Phân lớp}
-Để đảm bảo mã nguồn tuân thủ nguyên lý thiết kế phần mềm sạch (Clean Architecture), tính độc lập giữa logic mạng và giao diện người dùng, hệ thống được phân rã thành 3 tầng chức năng độc lập:
-
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[
-    node distance=0.95cm,
-    layer/.style={
-        rectangle,
-        draw=blue!75!black,
-        fill=blue!4,
-        thick,
-        text width=13.8cm,
-        align=center,
-        rounded corners=4pt,
-        inner sep=8pt
-    },
-    arrow/.style={thick, <->, >=stealth, draw=blue!75!black}
-]
-    % Tầng 1: UI
-    \node (ui) [layer] {
-        {\normalsize\textbf{\color{blue!80!black}TẦNG GIAO DIỆN (UI \& CLI Layer)}}\\[3pt]
-        {\small Hiển thị tiến trình và quản lý nhập liệu bất đồng bộ}\\[2pt]
-        {\footnotesize\color{black!75} Modules: \texttt{ui/}, \texttt{prompt\_toolkit}, \texttt{patch\_stdout}}
-    };
-
-    % Tầng 2: Core
-    \node (core) [layer, below=of ui] {
-        {\normalsize\textbf{\color{blue!80!black}TẦNG NGHIỆP VỤ \& DỮ LIỆU (Core Management Layer)}}\\[3pt]
-        {\small Quản lý danh sách Peer, trạng thái, lịch sử chat và bộ đếm tin chưa đọc}\\[2pt]
-        {\footnotesize\color{black!75} Modules: \texttt{PeerManager}, \texttt{ChatManager}}
-    };
-
-    % Tầng 3: Network
-    \node (network) [layer, below=of core] {
-        {\normalsize\textbf{\color{blue!80!black}TẦNG MẠNG \& GIAO THỨC (Networking \& Protocol Layer)}}\\[3pt]
-        {\small Socket TCP/UDP, bắt tay kết nối, phân khung và chia khối dữ liệu (Chunking)}\\[2pt]
-        {\footnotesize\color{black!75} Modules: \texttt{protocol}, \texttt{tcp\_server}, \texttt{udp\_listener}, \texttt{udp\_broadcast}}
-    };
-
-    % Mũi tên tương tác 2 chiều
-    \draw [arrow] (ui) -- node[right=4pt]{\footnotesize\textit{Gọi lệnh / Nhận sự kiện giao diện}} (core);
-    \draw [arrow] (core) -- node[right=4pt]{\footnotesize\textit{Đóng gói / Giải mã khung truyền (Framing)}} (network);
-\end{tikzpicture}
-\caption{Mô hình kiến trúc phân lớp của hệ thống}
-\label{fig:architecture}
-\end{figure}
-
-\begin{itemize}
-    \item \textbf{Tầng Giao diện \& CLI (UI Layer):} Chịu trách nhiệm tiếp nhận tương tác dòng lệnh của người dùng (\texttt{/list}, \texttt{/chat}, \texttt{/send}, \texttt{/leave}, \texttt{/quit}). Sử dụng kỹ thuật điều khiển màn hình bất đồng bộ nhằm tách biệt dòng gõ lệnh và luồng tin nhắn hiển thị.
-    \item \textbf{Tầng Nghiệp vụ (Core Layer):} Quản lý dữ liệu nội bộ của ứng dụng, gồm danh sách các nút đang online/offline, thời gian nhận tín hiệu cuối (\texttt{last\_seen}), lịch sử hội thoại của từng nút, và hàng đợi tin nhắn chưa đọc.
-    \item \textbf{Tầng Mạng (Networking Layer):} Làm việc trực tiếp với Native Socket API của hệ điều hành, hiện thực hóa các cơ chế phát sóng quảng bá UDP, thiết lập socket TCP lắng nghe (\texttt{bind}, \texttt{listen}, \texttt{accept}) và socket kết nối (\texttt{connect}).
-\end{itemize}
-
-\subsection{Quy trình Tương tác Liên mạng (Sequence Workflows)}
-
-\subsubsection{Quy trình Khám phá Peer (Peer Discovery)}
-Khi một nút $A$ tham gia mạng:
-\begin{enumerate}
-    \item $A$ mở socket UDP và định kỳ gửi gói tin broadcast chứa định danh của mình: $\text{HELLO} | \text{Name} | \text{TCP\_Port} | \text{Status}$.
-    \item Nút $B$ đang lắng nghe cổng UDP 9999 nhận được gói tin, kiểm tra địa chỉ nguồn (IP) và cổng TCP quảng bá.
-    \item $B$ cập nhật nút $A$ vào danh bạ nội bộ kèm dấu thời gian hiện tại (\texttt{monotonic timestamp}).
-    \item Nếu sau khoảng thời gian ngưỡng ($10.0$ giây) mà $B$ không nhận thêm bất kỳ gói tin $\text{HELLO}$ nào từ $A$, tiến trình dọn dẹp nội bộ sẽ tự động xóa $A$ khỏi danh sách bạn bè trực tuyến và đưa ra thông báo offline.
-\end{enumerate}
-
-\subsubsection{Quy trình Thiết lập Phiên Chat \& Bắt tay}
-Khi nút $A$ muốn bắt đầu trò chuyện với nút $B$:
-\begin{enumerate}
-    \item $A$ gọi \texttt{connect()} tới địa chỉ $(\text{IP}_B, \text{TCP\_Port}_B)$.
-    \item Khi kết nối thành công, $A$ gửi khung bắt tay (\texttt{INTRO}) chứa thông tin tên và cổng TCP của mình.
-    \item Phía $B$ tiếp nhận kết nối qua \texttt{accept()}, đọc khung \texttt{INTRO}, xác nhận danh tính của $A$ và phản hồi lại một khung \texttt{INTRO} tương ứng.
-    \item Hai bên duy trì socket TCP song công (Full-duplex) để gửi nhận các khung tin nhắn \texttt{MSG}.
-\end{enumerate}
-
-\subsubsection{Quy trình Tách biệt Kênh Truyền Tệp (Independent File Channel)}
-Nhằm đảm bảo quá trình tải tệp dung lượng lớn không làm nghẽn dòng dữ liệu văn bản, việc truyền tập tin được tách rời hoàn toàn:
-\begin{enumerate}
-    \item Khi người dùng ra lệnh \texttt{/send <tệp>}, ứng dụng khởi tạo một kết nối TCP hoàn toàn mới tới cổng TCP của bên nhận với định danh kênh \texttt{channel="file"}.
-    \item Phía gửi phát khung tiêu đề \texttt{FILE} chứa tên tệp và dung lượng chính xác (tính bằng byte).
-    \item Dữ liệu tập tin được đọc từ đĩa cứng và bơm vào socket theo từng khối nhị phân cố định (\texttt{CHUNK\_SIZE} = 64 KiB).
-    \item Sau khi truyền đủ số byte, kết nối TCP truyền tệp được đóng lại một cách duyên dáng (\texttt{graceful close}), trong khi socket của luồng chat chính vẫn hoạt động liên tục.
-\end{enumerate}
-
-% ------------------------------------------------------------------------------
-% REFERENCES
-% ------------------------------------------------------------------------------
-\newpage
-\begin{thebibliography}{99}
-\bibitem{python_socket} 
-Python Software Foundation, 
-\textit{Socket — Low-level networking interface}, Python 3 Documentation, 2026
-\url{https://docs.python.org/3/library/socket.html}
-
-\end{thebibliography}
-
+	
+	% ------------------------------------------------------------------------------
+	% COVER PAGE
+	% ------------------------------------------------------------------------------
+	\newgeometry{left=2.2cm, right=2.2cm, top=2.4cm, bottom=2.4cm}
+	\begin{titlepage}
+		\begin{tikzpicture}[remember picture, overlay]
+			\draw[line width=1.5pt] 
+			([xshift=1.8cm, yshift=-1.8cm]current page.north west) 
+			rectangle 
+			([xshift=-1.8cm, yshift=1.8cm]current page.south east);
+			
+			\draw[line width=0.5pt] 
+			([xshift=1.92cm, yshift=-1.92cm]current page.north west) 
+			rectangle 
+			([xshift=-1.92cm, yshift=1.92cm]current page.south east);
+		\end{tikzpicture}
+		
+		\centering
+		\vspace*{0.3cm}
+		{\Large \textbf{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}}\\[0.15cm]
+		{\Large \textbf{TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN}}\\[0.15cm]
+		{\large KHOA CÔNG NGHỆ THÔNG TIN}\\
+		{\large MÔN MẠNG MÁY TÍNH}\\[0.6cm]
+		
+		\includegraphics[width=0.45\textwidth]{HCMUS.png}\\[0.7cm]
+		
+		{\large \bfseries BÁO CÁO ĐỒ ÁN THỰC HÀNH}\\[0.25cm]
+		{\fontsize{20}{24}\selectfont \textbf{ỨNG DỤNG LAN CHAT \& FILE SHARING}}\\[0.8cm]
+		
+		\renewcommand{\arraystretch}{1.35} 
+		\begin{tabular}{r l l}
+			\textbf{Giảng viên hướng dẫn:} & ThS. Chung Thùy Linh & \\
+			& ThS. Huỳnh Thụy Bảo Trân & \\[0.3cm]
+			\textbf{Sinh viên thực hiện:}   & Nguyễn Đăng Huỳnh Nhân & -- \textbf{MSSV:} 25127221 \\
+			& Đào Vạn Đức            & -- \textbf{MSSV:} 25127036 \\
+			& Nguyễn Minh Huân       & -- \textbf{MSSV:} 25127050 \\[0.3cm]
+			\textbf{Lớp:}                  & 25C04 &
+		\end{tabular}
+		
+		\vfill
+		{\large \textbf{Thành phố Hồ Chí Minh, Năm 2026}}
+		\vspace*{0.2cm}
+	\end{titlepage}
+	\restoregeometry
+	
+	% ------------------------------------------------------------------------------
+	% TABLE OF CONTENTS
+	% ------------------------------------------------------------------------------
+	\clearpage
+	\pagenumbering{roman}
+	\tableofcontents
+	\clearpage
+	\phantomsection
+	\listoffigures
+	\phantomsection
+	\listoftables
+	\clearpage
+	\pagenumbering{arabic}
+	
+	% ------------------------------------------------------------------------------
+	% SECTION 1: INTRODUCTION
+	% ------------------------------------------------------------------------------
+	\section{Giới thiệu Tổng quan}
+	
+	Trong các mạng máy tính nội bộ (Local Area Network - LAN), nhu cầu liên lạc trực tiếp và chia sẻ tài nguyên giữa các thiết bị đầu cuối mà không phụ thuộc vào máy chủ trung tâm (Serverless / Peer-to-Peer - P2P) là một chủ đề cơ bản và quan trọng. 
+	
+	Đồ án \textbf{LAN Chat \& File Sharing} xây dựng một ứng dụng giao tiếp ngang hàng trên nền giao diện dòng lệnh (CLI). Mỗi thành viên tham gia mạng chạy cùng một phần mềm, tự động nhận diện sự hiện diện của các thành viên khác trong mạng LAN, quản lý trạng thái làm việc (\texttt{online} hoặc \texttt{away}), thiết lập các phiên trò chuyện tức thời (chat) và truyền tập tin dữ liệu (file transfer).
+	
+	Đặc thù cốt lõi của đồ án là sự kết hợp chặt chẽ giữa hai giao thức tầng giao vận (Transport Layer):
+	\begin{itemize}
+		\item \textbf{UDP (User Datagram Protocol):} Đóng vai trò là kênh khám phá (Discovery Plane). Do tính chất không kết nối (connectionless), hỗ trợ Broadcast hiệu quả, UDP được sử dụng để phát hiện sự hiện diện của các peer và định kỳ kiểm tra trạng thái hoạt động (Heartbeat).
+		\item \textbf{TCP (Transmission Control Protocol):} Đóng vai trò là kênh dữ liệu và điều khiển tin cậy (Data \& Chat Plane). TCP đảm bảo tính toàn vẹn (integrity), đúng thứ tự (ordered), và không làm mất dữ liệu tin nhắn cũng như các khối nhị phân của tập tin.
+	\end{itemize}
+	
+	% ------------------------------------------------------------------------------
+	% SECTION: SYSTEM ARCHITECTURE
+	% ------------------------------------------------------------------------------
+	\section{Kiến trúc Hệ thống}
+	
+	\subsection{Mô hình Phân lớp}
+	Để đảm bảo mã nguồn tuân thủ nguyên lý thiết kế phần mềm sạch (Clean Architecture), tính độc lập giữa logic mạng và giao diện người dùng, hệ thống được phân rã thành 3 tầng chức năng độc lập:
+	
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}[
+			node distance=0.95cm,
+			layer/.style={
+				rectangle,
+				draw=blue!75!black,
+				fill=blue!4,
+				thick,
+				text width=13.8cm,
+				align=center,
+				rounded corners=4pt,
+				inner sep=8pt
+			},
+			arrow/.style={thick, <->, >=stealth, draw=blue!75!black}
+			]
+			% Tầng 1: UI
+			\node (ui) [layer] {
+				{\normalsize\textbf{\color{blue!80!black}TẦNG GIAO DIỆN (UI \& CLI Layer)}}\\[3pt]
+				{\small Hiển thị tiến trình và quản lý nhập liệu bất đồng bộ}\\[2pt]
+				{\footnotesize\color{black!75} Modules: \texttt{ui/}, \texttt{prompt\_toolkit}, \texttt{patch\_stdout}}
+			};
+			
+			% Tầng 2: Core
+			\node (core) [layer, below=of ui] {
+				{\normalsize\textbf{\color{blue!80!black}TẦNG NGHIỆP VỤ \& DỮ LIỆU (Core Management Layer)}}\\[3pt]
+				{\small Quản lý danh sách Peer, trạng thái, lịch sử chat và bộ đếm tin chưa đọc}\\[2pt]
+				{\footnotesize\color{black!75} Modules: \texttt{PeerManager}, \texttt{ChatManager}}
+			};
+			
+			% Tầng 3: Network
+			\node (network) [layer, below=of core] {
+				{\normalsize\textbf{\color{blue!80!black}TẦNG MẠNG \& GIAO THỨC (Networking \& Protocol Layer)}}\\[3pt]
+				{\small Socket TCP/UDP, bắt tay kết nối, phân khung và chia khối dữ liệu (Chunking)}\\[2pt]
+				{\footnotesize\color{black!75} Modules: \texttt{protocol}, \texttt{tcp\_server}, \texttt{udp\_listener}, \texttt{udp\_broadcast}}
+			};
+			
+			% Mũi tên tương tác 2 chiều
+			\draw [arrow] (ui) -- node[right=4pt]{\footnotesize\textit{Gọi lệnh / Nhận sự kiện giao diện}} (core);
+			\draw [arrow] (core) -- node[right=4pt]{\footnotesize\textit{Đóng gói / Giải mã khung truyền (Framing)}} (network);
+		\end{tikzpicture}
+		\caption{Mô hình kiến trúc phân lớp của hệ thống}
+		\label{fig:architecture}
+	\end{figure}
+	
+	\begin{itemize}
+		\item \textbf{Tầng Giao diện \& CLI (UI Layer):} Chịu trách nhiệm tiếp nhận tương tác dòng lệnh của người dùng (\texttt{/list}, \texttt{/chat}, \texttt{/send}, \texttt{/leave}, \texttt{/quit}). Sử dụng kỹ thuật điều khiển màn hình bất đồng bộ nhằm tách biệt dòng gõ lệnh và luồng tin nhắn hiển thị.
+		\item \textbf{Tầng Nghiệp vụ (Core Layer):} Quản lý dữ liệu nội bộ của ứng dụng, gồm danh sách các nút đang online/offline, thời gian nhận tín hiệu cuối (\texttt{last\_seen}), lịch sử hội thoại của từng nút, và hàng đợi tin nhắn chưa đọc.
+		\item \textbf{Tầng Mạng (Networking Layer):} Làm việc trực tiếp với Native Socket API của hệ điều hành, hiện thực hóa các cơ chế phát sóng quảng bá UDP, thiết lập socket TCP lắng nghe (\texttt{bind}, \texttt{listen}, \texttt{accept}) và socket kết nối (\texttt{connect}).
+	\end{itemize}
+	
+	\subsection{Quy trình Tương tác Liên mạng (Sequence Workflows)}
+	
+	\subsubsection{Quy trình Khám phá Peer (Peer Discovery)}
+	Khi một nút $A$ tham gia mạng:
+	\begin{enumerate}
+		\item $A$ mở socket UDP và định kỳ gửi gói tin broadcast chứa định danh của mình: \texttt{HELLO|Name|TCP\_Port|Status}.
+		\item Nút $B$ đang lắng nghe cổng UDP 9999 nhận được gói tin, kiểm tra địa chỉ nguồn (IP) và cổng TCP quảng bá.
+		\item $B$ cập nhật nút $A$ vào danh bạ nội bộ kèm dấu thời gian hiện tại (\texttt{monotonic timestamp}).
+		\item Nếu sau khoảng thời gian ngưỡng ($10.0$ giây) mà $B$ không nhận thêm bất kỳ gói tin \texttt{HELLO} nào từ $A$, tiến trình dọn dẹp nội bộ sẽ tự động xóa $A$ khỏi danh sách bạn bè trực tuyến và đưa ra thông báo offline.
+	\end{enumerate}
+	
+	\subsubsection{Quy trình Thiết lập Phiên Chat \& Bắt tay}
+	Khi nút $A$ muốn bắt đầu trò chuyện với nút $B$:
+	\begin{enumerate}
+		\item $A$ gọi \texttt{connect()} tới địa chỉ $(\text{IP}_B, \text{TCP\_Port}_B)$.
+		\item Khi kết nối thành công, $A$ gửi khung bắt tay (\texttt{INTRO}) chứa thông tin tên và cổng TCP của mình.
+		\item Phía $B$ tiếp nhận kết nối qua \texttt{accept()}, đọc khung \texttt{INTRO}, xác nhận danh tính của $A$ và phản hồi lại một khung \texttt{INTRO} tương ứng.
+		\item Hai bên duy trì socket TCP song công (Full-duplex) để gửi nhận các khung tin nhắn \texttt{MSG}.
+	\end{enumerate}
+	
+	\subsubsection{Quy trình Tách biệt Kênh Truyền Tệp (Independent File Channel)}
+	Nhằm đảm bảo quá trình tải tệp dung lượng lớn không làm nghẽn dòng dữ liệu văn bản, việc truyền tập tin được tách rời hoàn toàn:
+	\begin{enumerate}
+		\item Khi người dùng ra lệnh \texttt{/send <tệp>}, ứng dụng khởi tạo một kết nối TCP hoàn toàn mới tới cổng TCP của bên nhận với định danh kênh \texttt{channel="file"}.
+		\item Phía gửi phát khung tiêu đề \texttt{FILE} chứa tên tệp và dung lượng chính xác (tính bằng byte).
+		\item Dữ liệu tập tin được đọc từ đĩa cứng và bơm vào socket theo từng khối nhị phân cố định (\texttt{CHUNK\_SIZE} = 64 KiB).
+		\item Sau khi truyền đủ số byte, kết nối TCP truyền tệp được đóng lại một cách duyên dáng (\texttt{graceful close}), trong khi socket của luồng chat chính vẫn hoạt động liên tục.
+	\end{enumerate}
+	
+	% ------------------------------------------------------------------------------
+	% REFERENCES
+	% ------------------------------------------------------------------------------
+	\newpage
+	\begin{thebibliography}{99}
+		\bibitem{python_socket} 
+		Python Software Foundation, 
+		\textit{Socket --- Low-level networking interface}, Python 3 Documentation, 2026.\\
+		\url{https://docs.python.org/3/library/socket.html}
+		
+	\end{thebibliography}
+	
 \end{document}
