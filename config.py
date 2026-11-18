@@ -24,6 +24,7 @@ CONNECT_TIMEOUT = 5.0
 MAX_HEADER_SIZE = 8 * 1024       # 8 KiB maximum header size (prevent memory abuse)
 MAX_MSG_SIZE = 64 * 1024         # 64 KiB maximum text message length
 FILE_CHUNK_SIZE = 64 * 1024      # 64 KiB per file streaming chunk
+MAX_FILE_SIZE = 10 * 1024 ** 3   # Giới hạn mỗi tệp: 10 GiB.
 
 # ==============================================================================
 # STORAGE & PATH CONFIGURATION
