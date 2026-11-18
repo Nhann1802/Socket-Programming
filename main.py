@@ -90,6 +90,7 @@ from core.chat_manager import ChatManager
 from transfer.transfer_manager import TransferManager
 from ui.console import Console
 from ui.input_handler import InputHandler, Command
+from ui.progress_display import ProgressDisplay
 
 running = True
 
@@ -190,9 +191,11 @@ def main():
     peer_mgr = PeerManager(on_peer_added=on_peer_added, on_peer_removed=on_peer_removed)
 
     # Khởi tạo TransferManager (Tầng Transfer)
+    progress_display = ProgressDisplay()
     transfer_mgr = TransferManager(
         download_dir=DEFAULT_DOWNLOAD_DIR,
-        on_notify=lambda msg: print(msg),
+        on_notify=Console.write_line,
+        on_progress=progress_display.update if HAS_PROMPT_TOOLKIT else None,
     )
 
     # 3. Hàm nhận tin nhắn ngầm từ bạn chat qua TCP
@@ -388,10 +391,12 @@ def main():
     session = None
     if use_prompt_toolkit:
         try:
-            session = PromptSession()
+            session = PromptSession(bottom_toolbar=progress_display.render, refresh_interval=0.1)
         except Exception:
             session = None
             use_prompt_toolkit = False
+    if not use_prompt_toolkit:
+        Console.info("Không dùng được prompt_toolkit: chỉ hiện thông báo kết quả truyền tệp, không có thanh tiến trình.")
 
     def get_input(prompt_str: str) -> str:
         if session and use_prompt_toolkit:
@@ -605,6 +610,7 @@ def main():
 
     # Dọn dẹp khi thoát
     running = False
+    transfer_mgr.shutdown()
     all_socks = chat_mgr.close_all()
     for s in all_socks:
         try:

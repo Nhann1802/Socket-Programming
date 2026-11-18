@@ -1,6 +1,6 @@
 import socket
 import threading
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable
 from network.protocol import send_frame, recv_frame, FrameType
 from config import CONNECT_TIMEOUT
 
@@ -18,6 +18,7 @@ class TCPClient:
         own_tcp_port: int,
         channel: str = "chat",
         timeout: float = CONNECT_TIMEOUT,
+        on_socket: Optional[Callable[[socket.socket], None]] = None,
     ) -> Tuple[socket.socket, threading.Lock, str]:
         """
         Direct INTRO handshake (used for file transfers or direct connections).
@@ -26,6 +27,8 @@ class TCPClient:
         sock.settimeout(timeout)
 
         try:
+            if on_socket:
+                on_socket(sock)
             sock.connect((ip, tcp_port))
             send_lock = threading.Lock()
 

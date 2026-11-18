@@ -1,17 +1,15 @@
-import os
 import socket
+import os
+import threading
 from pathlib import Path
 from typing import Optional, Callable
-from config import FILE_CHUNK_SIZE, CONNECT_TIMEOUT
+from config import FILE_CHUNK_SIZE, CONNECT_TIMEOUT, MAX_FILE_SIZE
 from network.protocol import send_frame, FrameType
 from network.tcp_client import TCPClient
 from .progress import TransferProgress
 
 
 class FileSender:
-    """
-    Sends a file to a remote peer over an independent TCP channel (channel='file').
-    """
     @staticmethod
     def send_file(
         target_ip: str,
@@ -21,66 +19,53 @@ class FileSender:
         filepath: str,
         progress_callback: Optional[Callable[[str], None]] = None,
         timeout: float = CONNECT_TIMEOUT,
+        cancel_event: Optional[threading.Event] = None,
+        on_socket: Optional[Callable[[socket.socket], None]] = None,
+        on_progress: Optional[Callable[[TransferProgress], None]] = None,
     ) -> bool:
-        """
-        Transmits file to target peer.
-        Returns True if transfer succeeds, False otherwise.
-        """
-        path = Path(filepath).resolve()
-        if not path.is_file():
-            if progress_callback:
-                progress_callback(f"[!] Tệp không tồn tại: {filepath}")
-            return False
-
-        filesize = path.stat().st_size
-        filename = path.name
-
-        sock: Optional[socket.socket] = None
+        sock = None
+        progress = None
+        filename = Path(filepath).name
         try:
-            # 1. Connect to peer with channel="file"
-            sock, send_lock, remote_name = TCPClient.connect_to_peer(
-                ip=target_ip,
-                tcp_port=target_port,
-                own_name=own_name,
-                own_tcp_port=own_tcp_port,
-                channel="file",
-                timeout=timeout,
-            )
-
-            # 2. Transmit FILE frame header
-            file_header = {
-                "type": FrameType.FILE,
-                "filename": filename,
-                "size": filesize,
-            }
-            send_frame(sock, file_header, payload=b"", send_lock=send_lock)
-
-            # 3. Stream file chunks
-            progress = TransferProgress(filename, filesize, direction="Gửi")
-            if progress_callback:
-                progress_callback(f"[*] Bắt đầu gửi [{filename}] ({filesize / 1024:.1f} KB) tới [{remote_name}]...")
-
-            with open(path, "rb") as f:
-                while True:
-                    chunk = f.read(FILE_CHUNK_SIZE)
+            path = Path(filepath).resolve()
+            with path.open('rb') as file:
+                size = os.fstat(file.fileno()).st_size
+                if size > MAX_FILE_SIZE:
+                    raise ValueError("Tệp vượt giới hạn 10 GiB.")
+                if cancel_event and cancel_event.is_set():
+                    raise InterruptedError("Đã hủy truyền tệp.")
+                sock, lock, remote_name = TCPClient.connect_to_peer(
+                    ip=target_ip, tcp_port=target_port, own_name=own_name,
+                    own_tcp_port=own_tcp_port, channel='file', timeout=timeout,
+                    on_socket=on_socket,
+                )
+                send_frame(sock, {'type': FrameType.FILE, 'filename': path.name, 'size': size}, send_lock=lock)
+                progress = TransferProgress(filename, size, "Gửi")
+                if on_progress:
+                    on_progress(progress)
+                remaining = size
+                while remaining:
+                    if cancel_event and cancel_event.is_set():
+                        raise InterruptedError("Đã hủy truyền tệp.")
+                    chunk = file.read(min(FILE_CHUNK_SIZE, remaining))
                     if not chunk:
-                        break
+                        raise OSError("Tệp nguồn đã bị thay đổi trong lúc gửi.")
                     sock.sendall(chunk)
-                    if progress.update(len(chunk)) and progress_callback:
-                        progress_callback(progress.format_status())
-
+                    remaining -= len(chunk)
+                    progress.update(len(chunk))
+                if cancel_event and cancel_event.is_set():
+                    raise InterruptedError("Đã hủy truyền tệp.")
             if progress_callback:
-                progress_callback(f"[✓] Gửi thành công [{filename}] tới [{remote_name}]!")
+                progress_callback(f"[✓] Gửi 100% [{filename}] tới [{remote_name}].")
             return True
-
-        except Exception as e:
+        except Exception as error:
+            reason = "Đã hủy truyền tệp." if cancel_event and cancel_event.is_set() else str(error)
             if progress_callback:
-                progress_callback(f"[!] Lỗi khi gửi tệp [{filename}]: {e}")
+                progress_callback(f"[!] Gửi [{filename}] thất bại: {reason}")
             return False
-
         finally:
+            if progress and on_progress:
+                progress.finished = True
+                on_progress(progress)
             if sock:
-                try:
-                    sock.close()
-                except OSError:
-                    pass
+                sock.close()
