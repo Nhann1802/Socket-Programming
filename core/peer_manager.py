@@ -76,9 +76,9 @@ class PeerManager:
         return None
 
     def list_peers(self) -> List[Peer]:
-        """Returns a snapshot list of all currently tracked peers."""
+        """Returns a snapshot list of all currently tracked peers, sorted by name."""
         with self._lock:
-            return list(self._peers.values())
+            return sorted(self._peers.values(), key=lambda p: p.name.lower())
 
     def count(self) -> int:
         """Returns total number of tracked peers."""

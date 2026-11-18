@@ -98,6 +98,35 @@ class TestCoreModules(unittest.TestCase):
         self.assertEqual(cmd.name, "MESSAGE")
         self.assertEqual(cmd.args, "Xin chao")
 
+    def test_resolve_peer_target_by_index(self):
+        from main import resolve_peer_target
+        pm = PeerManager()
+        pm.add_or_update("Alice", "192.168.1.10", 5001, "online")
+        pm.add_or_update("Bob", "192.168.1.11", 5002, "online")
+
+        # 1. Resolve by 1-based index
+        ip, port, name = resolve_peer_target("1", pm)
+        self.assertEqual(name, "Alice")
+        self.assertEqual(ip, "192.168.1.10")
+        self.assertEqual(port, 5001)
+
+        ip2, port2, name2 = resolve_peer_target("2", pm)
+        self.assertEqual(name2, "Bob")
+        self.assertEqual(ip2, "192.168.1.11")
+        self.assertEqual(port2, 5002)
+
+        # 2. Resolve by Name
+        ip3, port3, name3 = resolve_peer_target("Bob", pm)
+        self.assertEqual(name3, "Bob")
+
+        # 3. Resolve by valid port
+        ip4, port4, name4 = resolve_peer_target("5001", pm)
+        self.assertEqual(name4, "Alice")
+
+        # 4. Out of range index
+        ip5, port5, name5 = resolve_peer_target("99", pm)
+        self.assertIsNone(ip5)
+
 
 if __name__ == "__main__":
     unittest.main()

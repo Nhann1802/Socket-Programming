@@ -42,7 +42,7 @@ class Console:
             print("    (Hiện chưa có ai online, đang quét mạng LAN...)")
             return
 
-        for p in peers:
+        for i, p in enumerate(peers, 1):
             p_lower = p.name.lower()
             unread = unread_counts.get(p_lower, 0)
             unread_str = f" | [Chưa đọc: {unread}]" if unread > 0 else ""
@@ -54,7 +54,7 @@ class Console:
             elif p_lower in connected_set:
                 chat_tag = " [Đã kết nối]"
 
-            print(f"    - [{p.name}] {p.ip}:{p.tcp_port} {status_tag}{chat_tag}{unread_str}")
+            print(f"    {i}. [{p.name}] {p.ip}:{p.tcp_port} {status_tag}{chat_tag}{unread_str}")
         print()
 
     @staticmethod
@@ -63,7 +63,7 @@ class Console:
         print(" DANH SÁCH LỆNH HỖ TRỢ (LAN CHAT & FILE SHARING)")
         print("=" * 60)
         print("  /list                    : Xem danh sách bạn bè online & tin chưa đọc")
-        print("  /chat <tên|port|ip:port> : Mở hoặc chuyển đổi phòng chat với bạn đó")
+        print("  /chat <số|tên|port>      : Mở hoặc chuyển đổi phòng chat (Ví dụ: /chat 1)")
         print("  /send <đường_dẫn_tệp>    : Gửi tệp tới bạn đang chat")
         print("  /leave                   : Rời phòng chat hiện tại (tin mới sẽ là chưa đọc)")
         print("  /status <online|away>    : Đổi trạng thái hiển thị của bạn")

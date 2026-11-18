@@ -94,24 +94,33 @@ from ui.input_handler import InputHandler, Command
 running = True
 
 
-def resolve_peer_target(arg: str, peer_mgr: PeerManager):
+def resolve_peer_target(arg: str, peer_mgr: PeerManager, cached_peers=None):
     """
     Phân giải mục tiêu chat:
-      1. Theo tên: /chat Nhan
-      2. Theo IP:Port: /chat 127.0.0.1:5002
-      3. Theo Port: /chat 5002
+      1. Theo số thứ tự trong danh sách /list: /chat 1, /chat 2
+      2. Theo tên: /chat Nhan
+      3. Theo IP:Port: /chat 127.0.0.1:5002
+      4. Theo Port: /chat 5002
     Trả về: (ip, port, display_name) hoặc (None, None, None)
     """
     arg = arg.strip()
     if not arg:
         return None, None, None
 
-    # 1. Tìm theo tên trong danh sách peers
+    # 1. Định dạng số thứ tự (index: 1, 2, 3...) từ danh sách peers
+    if arg.isdigit():
+        idx = int(arg)
+        peers_list = cached_peers if (cached_peers is not None and len(cached_peers) > 0) else peer_mgr.list_peers()
+        if 1 <= idx <= len(peers_list):
+            target = peers_list[idx - 1]
+            return target.ip, target.tcp_port, target.name
+
+    # 2. Tìm theo tên trong danh sách peers
     peer = peer_mgr.find_by_name(arg)
     if peer:
         return peer.ip, peer.tcp_port, peer.name
 
-    # 2. Định dạng IP:Port (ví dụ: 192.168.1.5:5001)
+    # 3. Định dạng IP:Port (ví dụ: 192.168.1.5:5001)
     if ":" in arg:
         parts = arg.split(":", 1)
         ip = parts[0].strip()
@@ -123,13 +132,14 @@ def resolve_peer_target(arg: str, peer_mgr: PeerManager):
         except ValueError:
             return None, None, None
 
-    # 3. Định dạng chỉ có số Port (ví dụ: 5002)
+    # 4. Định dạng chỉ có số Port (ví dụ: 5002) - dành cho cổng >= 1024
     if arg.isdigit():
         target_port = int(arg)
         p = peer_mgr.find_by_port(target_port)
         if p:
             return p.ip, p.tcp_port, p.name
-        return "127.0.0.1", target_port, f"Port {target_port}"
+        if target_port >= 1024:
+            return "127.0.0.1", target_port, f"Port {target_port}"
 
     return None, None, None
 
@@ -384,6 +394,7 @@ def main():
     # 11. Vòng lặp chính xử lý lệnh
     def run_cli_loop():
         global running
+        last_listed_peers = []
         while True:
             # Tạo prompt hiển thị rõ bạn đang ở phòng chat của ai
             active_name = chat_mgr.get_active_partner()
@@ -407,6 +418,7 @@ def main():
 
             elif cmd.name == "LIST":
                 active_peers = peer_mgr.list_peers()
+                last_listed_peers = active_peers
                 unread_map = msg_mgr.get_all_unread()
                 connected_names = chat_mgr.list_connected_peer_names()
                 Console.print_peer_list(
@@ -427,10 +439,10 @@ def main():
             elif cmd.name == "CHAT":
                 target_str = cmd.args.strip()
                 if not target_str:
-                    Console.warning("Cách dùng: /chat <tên_bạn> hoặc /chat <port> hoặc /chat <ip>:<port>")
+                    Console.warning("Cách dùng: /chat <số|tên_bạn|port> (Ví dụ: /chat 1 hoặc /chat Nhan)")
                     continue
 
-                t_ip, t_port, t_name = resolve_peer_target(target_str, peer_mgr)
+                t_ip, t_port, t_name = resolve_peer_target(target_str, peer_mgr, last_listed_peers)
                 if not t_ip or not t_port:
                     Console.error(f"Không tìm thấy peer '{target_str}'. Hãy gõ /list để xem danh sách bạn bè online.")
                     continue
@@ -519,7 +531,7 @@ def main():
                 target_str = parts[0].strip()
                 direct_text = parts[1].strip()
 
-                t_ip, t_port, t_label = resolve_peer_target(target_str, peer_mgr)
+                t_ip, t_port, t_label = resolve_peer_target(target_str, peer_mgr, last_listed_peers)
                 if not t_ip or not t_port:
                     Console.error(f"Không tìm thấy peer '{target_str}'. Hãy gõ /list để xem danh sách bạn bè online.")
                     continue
