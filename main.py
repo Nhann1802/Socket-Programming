@@ -183,9 +183,9 @@ def main():
         Console.info(f"Tìm thấy bạn mới: [{peer.name}] tại {peer.ip}:{peer.tcp_port} [{peer.status}]")
 
     def on_peer_removed(peer):
-        Console.warning(f"[{peer.name}] đã rời mạng (offline).")
+        Console.warning(f"[{peer.name}] ({peer.ip}:{peer.tcp_port}) đã rời mạng (offline).")
         # Dọn dẹp session chat nếu peer này thoát
-        chat_mgr.remove_session(peer.name)
+        chat_mgr.remove_session(target=(peer.ip, peer.tcp_port))
 
     peer_mgr = PeerManager(on_peer_added=on_peer_added, on_peer_removed=on_peer_removed)
 
@@ -196,8 +196,9 @@ def main():
     )
 
     # 3. Hàm nhận tin nhắn ngầm từ bạn chat qua TCP
-    def chat_receiver_thread(sock: socket.socket, partner_name: str):
+    def chat_receiver_thread(sock: socket.socket, partner_name: str, partner_ip: str = "", partner_port: int = 0):
         left_announced = False
+        display_tag = f"{partner_name}:{partner_port}" if partner_port > 0 else partner_name
         while running:
             try:
                 header, payload = recv_frame(sock)
@@ -205,36 +206,52 @@ def main():
 
                 if frame_type == FrameType.MSG:
                     msg_text = payload.decode("utf-8", errors="replace")
-                    active_partner = chat_mgr.get_active_partner()
+                    active_sess = chat_mgr.get_active_session()
+
+                    # Kiểm tra xem tin nhắn đến có đúng từ phòng chat đang mở không
+                    is_active = False
+                    if active_sess:
+                        act_port = active_sess.get("port", 0)
+                        if partner_port > 0 and act_port > 0:
+                            is_active = (partner_port == act_port)
+                        else:
+                            is_active = (active_sess.get("name", "").lower() == partner_name.lower())
+
+                    endpoint_key = (partner_ip, partner_port) if partner_port > 0 else partner_name
 
                     # Nếu người gửi chính là người đang mở phòng chat -> hiện trực tiếp
-                    if active_partner and active_partner.lower() == partner_name.lower():
+                    if is_active:
                         msg_mgr.add_message(
                             Message(sender=partner_name, receiver=me, content=msg_text),
                             is_active_session=True,
+                            conversation_partner=endpoint_key,
                         )
                         Console.chat_message(partner_name, msg_text)
                     else:
-                        # Người gửi KHÁC người đang chat -> Lưu vào UNREAD và thông báo
+                        # Người gửi KHÁC người đang chat -> Lưu vào UNREAD và chỉ thông báo số tin nhắn chưa đọc
                         msg_mgr.add_message(
                             Message(sender=partner_name, receiver=me, content=msg_text),
                             is_active_session=False,
+                            conversation_partner=endpoint_key,
                         )
+                        unread = msg_mgr.get_unread_count(endpoint_key)
+                        reply_target = partner_port if partner_port > 0 else partner_name
                         Console.info(
-                            f"[Tin nhắn chưa đọc từ {partner_name}]: {msg_text}  (Gõ /chat {partner_name} để trả lời)"
+                            f"[*] Bạn có {unread} tin nhắn chưa đọc từ [{display_tag}]. (Gõ /chat {reply_target} để xem)"
                         )
 
                 elif frame_type == FrameType.BYE:
-                    Console.info(f"[{partner_name}] đã đóng kết nối trò chuyện.")
+                    Console.info(f"[{display_tag}] đã đóng kết nối trò chuyện.")
                     left_announced = True
                     break
 
             except Exception:
                 break
 
-        chat_mgr.remove_session(partner_name)
+        # Chỉ xóa đúng session của socket này (tránh xóa nhầm người trùng tên khác)
+        chat_mgr.remove_session(sock=sock)
         if not left_announced:
-            Console.info(f"[*] Kết nối với [{partner_name}] đã đóng.")
+            Console.info(f"Kết nối với [{display_tag}] đã đóng.")
 
         try:
             sock.close()
@@ -243,7 +260,7 @@ def main():
 
     # 4. Callback khi có kết nối chat đến (TỰ ĐỘNG CHẤP NHẬN - Không chặn / Không bắt reject)
     def on_incoming_chat_connection(sock: socket.socket, peer_name: str, advertised_port: int, client_ip: str):
-        # Đăng ký session vào ChatManager
+        # Đăng ký session vào ChatManager theo (ip, port) duy nhất
         chat_mgr.add_session(
             sock=sock,
             name=peer_name,
@@ -255,22 +272,21 @@ def main():
         # Khởi động luồng nhận tin nhắn cho peer này
         threading.Thread(
             target=chat_receiver_thread,
-            args=(sock, peer_name),
-            name=f"ChatReceiver-{peer_name}",
+            args=(sock, peer_name, client_ip, advertised_port),
+            name=f"ChatReceiver-{peer_name}:{advertised_port}",
             daemon=True,
         ).start()
 
         active = chat_mgr.get_active_partner()
         if not active:
             # Chưa chat với ai -> tự động chọn bạn này làm active
-            chat_mgr.set_active_partner(peer_name)
-            msg_mgr.mark_as_read(peer_name)
-            Console.success(f"Đã kết nối với [{peer_name}]. Nhập tin nhắn để bắt đầu trò chuyện!")
+            chat_mgr.set_active_partner((client_ip, advertised_port))
+            msg_mgr.mark_as_read((client_ip, advertised_port))
+            Console.success(f"Đã kết nối với [{peer_name}] ({client_ip}:{advertised_port}). Nhập tin nhắn để bắt đầu trò chuyện!")
         else:
             # Đang chat với người khác -> thông báo bạn mới đã kết nối ở nền
-            unread_count = msg_mgr.get_unread_count(peer_name)
             Console.info(
-                f"[{peer_name}] đã kết nối với bạn. (Gõ /chat {peer_name} để chuyển sang {peer_name})"
+                f"[{peer_name}] ({client_ip}:{advertised_port}) đã kết nối với bạn. (Gõ /chat {advertised_port} để chuyển sang {peer_name})"
             )
 
     # 5. Callback khi có kết nối FILE đến
@@ -294,7 +310,8 @@ def main():
                 if is_active:
                     Console.chat_message(sender_name, text)
                 else:
-                    Console.info(f"[Tin nhắn chưa đọc từ {sender_name}]: {text}  (Gõ /chat {sender_name} để trả lời)")
+                    unread = msg_mgr.get_unread_count(sender_name)
+                    Console.info(f"[*] Bạn có {unread} tin nhắn chưa đọc từ [{sender_name}]. (Gõ /chat {sender_name} để xem)")
         except Exception:
             pass
         finally:
@@ -369,16 +386,23 @@ def main():
                     send_lock=lock,
                     set_active=True,
                 )
-                msg_mgr.mark_as_read(remote_name)
+                msg_mgr.mark_as_read((target_ip, target_port))
                 threading.Thread(
                     target=chat_receiver_thread,
-                    args=(sock, remote_name),
-                    name=f"ChatReceiver-{remote_name}",
+                    args=(sock, remote_name, target_ip, target_port),
+                    name=f"ChatReceiver-{remote_name}:{target_port}",
                     daemon=True,
                 ).start()
                 Console.success(
-                    f"Đã kết nối với [{remote_name}]. Nhập tin nhắn để chat, /send <file> để gửi tệp, /leave để rời phòng."
+                    f"Đã kết nối với [{remote_name}] ({target_ip}:{target_port}). Nhập tin nhắn để chat, /send <file> để gửi tệp, /leave để rời phòng."
                 )
+                # Hiển thị 5 tin nhắn gần nhất nếu đã từng chat trước đó
+                history = msg_mgr.get_history((target_ip, target_port))
+                if history:
+                    print(f"--- 5 tin nhắn gần nhất với [{remote_name}] ({target_ip}:{target_port}) ---")
+                    for m in history[-5:]:
+                        print(f"  [{m.formatted_time()}] [{m.sender}]: {m.content}")
+                    print("---------------------------------------------------------------")
             else:
                 Console.warning(f"Không thể kết nối với [{target_name}].")
         except Exception as e:
@@ -427,11 +451,15 @@ def main():
                 last_listed_peers = active_peers
                 unread_map = msg_mgr.get_all_unread()
                 connected_names = chat_mgr.list_connected_peer_names()
+                connected_ports = chat_mgr.list_connected_ports()
+                active_port = chat_mgr.get_active_port()
                 Console.print_peer_list(
                     peers=active_peers,
                     unread_counts=unread_map,
                     active_partner=chat_mgr.get_active_partner(),
                     connected_peers=connected_names,
+                    connected_ports=connected_ports,
+                    active_port=active_port,
                 )
 
             elif cmd.name == "STATUS":
@@ -448,23 +476,45 @@ def main():
                     Console.warning("Cách dùng: /chat <số|tên_bạn|port>")
                     continue
 
+                # Kiểm tra trường hợp trùng tên: nếu người dùng gõ tên và có nhiều bạn cùng tên này
+                if not target_str.isdigit() and ":" not in target_str:
+                    matching_peers = peer_mgr.find_all_by_name(target_str)
+                    candidates = []
+                    seen_ports = set()
+                    for p in matching_peers:
+                        if p.tcp_port not in seen_ports:
+                            candidates.append((p.name, p.ip, p.tcp_port))
+                            seen_ports.add(p.tcp_port)
+                    for s in chat_mgr.list_all_sessions():
+                        if s["name"].lower() == target_str.lower() and s["port"] not in seen_ports:
+                            candidates.append((s["name"], s["ip"], s["port"]))
+                            seen_ports.add(s["port"])
+
+                    if len(candidates) > 1:
+                        Console.warning(f"Tìm thấy {len(candidates)} bạn có cùng tên '[{target_str}]':")
+                        for idx, (c_name, c_ip, c_port) in enumerate(candidates, 1):
+                            print(f"    - [{c_name}] tại {c_ip}:{c_port} (Cổng TCP: {c_port})")
+                        Console.info(f"-> Vui lòng chọn cụ thể bằng cách gõ: /chat <port> (ví dụ: /chat {candidates[0][2]}) hoặc /chat <số_thứ_tự_trong_/list>")
+                        continue
+
                 t_ip, t_port, t_name = resolve_peer_target(target_str, peer_mgr, last_listed_peers)
                 if not t_ip or not t_port:
                     Console.error(f"Không tìm thấy peer '{target_str}'. Hãy gõ /list để xem danh sách bạn bè online.")
                     continue
 
-                # Nếu ĐÃ CÓ kết nối trước đó với bạn này -> chỉ cần chuyển tiêu điểm (Switch Room)
-                if chat_mgr.has_session(t_name):
-                    chat_mgr.set_active_partner(t_name)
-                    msg_mgr.mark_as_read(t_name)
-                    Console.success(f"Đã chuyển sang phòng chat với [{t_name}].")
-                    # Hiển thị 5 tin nhắn gần nhất để xem lại
-                    history = msg_mgr.get_history(t_name)
+                # Nếu ĐÃ CÓ kết nối trước đó với bạn này theo (t_ip, t_port) -> chỉ cần chuyển tiêu điểm
+                target_key = (t_ip, t_port)
+                if chat_mgr.has_session(target_key):
+                    chat_mgr.set_active_partner(target_key)
+                    msg_mgr.mark_as_read(target_key)
+                    Console.success(f"Đã chuyển sang phòng chat với [{t_name}] ({t_ip}:{t_port}).")
+                    # Hiển thị 5 tin nhắn gần nhất để xem lại (chuẩn theo đúng endpoint này)
+                    history = msg_mgr.get_history(target_key)
                     if history:
-                        print(f"--- 5 tin nhắn gần nhất với [{t_name}] ---")
+                        print(f"--- 5 tin nhắn gần nhất với [{t_name}] ({t_ip}:{t_port}) ---")
                         for m in history[-5:]:
-                            print(f"  [{m.formatted_time()}] {m.sender}: {m.content}")
-                        print("------------------------------------------")
+                            print(f"  [{m.formatted_time()}] [{m.sender}]: {m.content}")
+                        print("---------------------------------------------------------------")
                     continue
 
                 # Chưa có kết nối -> mở kết nối mới trong background
@@ -514,19 +564,29 @@ def main():
                     Console.warning("Hiện tại bạn chưa ở trong phòng chat nào.")
 
             elif cmd.name == "HISTORY":
-                target_peer = cmd.args.strip() if cmd.args.strip() else chat_mgr.get_active_partner()
-                if not target_peer:
-                    Console.warning("Cách dùng: /history <tên_bạn>")
+                target_peer = cmd.args.strip()
+                active_sess = chat_mgr.get_active_session()
+
+                if not target_peer and not active_sess:
+                    Console.warning("Cách dùng: /history <số|tên_bạn|port>")
                     continue
 
-                history = msg_mgr.get_history(target_peer)
-                print(f"\n--- Lịch sử trò chuyện với [{target_peer}] ({len(history)} tin nhắn) ---")
+                if target_peer:
+                    t_ip, t_port, t_name = resolve_peer_target(target_peer, peer_mgr, last_listed_peers)
+                    lookup_key = (t_ip, t_port) if (t_ip and t_port) else target_peer
+                    display_tag = f"[{t_name}] ({t_ip}:{t_port})" if (t_name and t_port) else f"[{target_peer}]"
+                else:
+                    lookup_key = (active_sess["ip"], active_sess["port"]) if active_sess.get("port", 0) > 0 else active_sess["name"]
+                    display_tag = f"[{active_sess['name']}] ({active_sess['ip']}:{active_sess['port']})"
+
+                history = msg_mgr.get_history(lookup_key)
+                print(f"\n--- Lịch sử trò chuyện với {display_tag} ({len(history)} tin nhắn) ---")
                 if not history:
                     print("  (Chưa có tin nhắn nào)")
                 for m in history:
-                    print(f"[{m.formatted_time()}] {m.sender}: {m.content}")
+                    print(f"[{m.formatted_time()}] [{m.sender}]: {m.content}")
                 print("----------------------------------------------------------------\n")
-                msg_mgr.mark_as_read(target_peer)
+                msg_mgr.mark_as_read(lookup_key)
 
             elif cmd.name == "DIRECT_MSG":
                 parts = cmd.args.split(maxsplit=1)
@@ -578,19 +638,24 @@ def main():
 
                     payload = cmd.args.encode("utf-8")
                     header = {"type": FrameType.MSG, "length": len(payload)}
+                    endpoint_key = (
+                        (active_session["ip"], active_session["port"])
+                        if active_session.get("port", 0) > 0
+                        else partner
+                    )
                     try:
                         send_frame(s_sock, header, payload, send_lock=s_lock)
                         msg_mgr.add_message(
                             Message(sender=me, receiver=partner, content=cmd.args),
                             is_active_session=True,
-                            conversation_partner=partner,
+                            conversation_partner=endpoint_key,
                         )
 
                         # In tin nhắn đã gửi chuẩn định dạng
                         Console.chat_message(me, cmd.args)
                     except Exception as e:
                         Console.error(f"Gửi tin nhắn thất bại tới [{partner}]: {e}")
-                        chat_mgr.remove_session(partner)
+                        chat_mgr.remove_session(sock=s_sock)
                 else:
                     Console.warning("Bạn chưa chọn người để chat. Gõ /chat <tên_bạn> (ví dụ: /chat Nhan) hoặc /help.")
 

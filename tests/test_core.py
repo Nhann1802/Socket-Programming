@@ -50,6 +50,51 @@ class TestCoreModules(unittest.TestCase):
         mm.mark_as_read("Alice")
         self.assertEqual(mm.get_unread_count("Alice"), 0)
 
+    def test_message_manager_endpoint_isolation(self):
+        mm = MessageManager()
+        # B on port 5002 sends a message
+        mm.add_message(
+            Message(sender="B", receiver="A", content="Hello from 5002"),
+            is_active_session=False,
+            conversation_partner=("127.0.0.1", 5002),
+        )
+        # B on port 5004 sends a message
+        mm.add_message(
+            Message(sender="B", receiver="A", content="Hello from 5004"),
+            is_active_session=False,
+            conversation_partner=("127.0.0.1", 5004),
+        )
+
+        # Unread counts are isolated
+        self.assertEqual(mm.get_unread_count(("127.0.0.1", 5002)), 1)
+        self.assertEqual(mm.get_unread_count(("127.0.0.1", 5004)), 1)
+        # Total unread count across all peers when called with no arguments
+        self.assertEqual(mm.get_unread_count(), 2)
+
+        # Histories are isolated
+        hist_5002 = mm.get_history(("127.0.0.1", 5002))
+        hist_5004 = mm.get_history(("127.0.0.1", 5004))
+        self.assertEqual(len(hist_5002), 1)
+        self.assertEqual(hist_5002[0].content, "Hello from 5002")
+        self.assertEqual(len(hist_5004), 1)
+        self.assertEqual(hist_5004[0].content, "Hello from 5004")
+
+        # Mark 5002 as read does NOT clear 5004
+        mm.mark_as_read(("127.0.0.1", 5002))
+        self.assertEqual(mm.get_unread_count(("127.0.0.1", 5002)), 0)
+        self.assertEqual(mm.get_unread_count(("127.0.0.1", 5004)), 1)
+
+    def test_peer_manager_find_all_by_name(self):
+        pm = PeerManager()
+        pm.add_or_update("B", "127.0.0.1", 5002, "online")
+        pm.add_or_update("B", "127.0.0.1", 5004, "online")
+        pm.add_or_update("Alice", "127.0.0.1", 5003, "online")
+
+        matches = pm.find_all_by_name("b")
+        self.assertEqual(len(matches), 2)
+        ports = {p.tcp_port for p in matches}
+        self.assertEqual(ports, {5002, 5004})
+
     def test_status_manager(self):
         sm = StatusManager("online")
         self.assertEqual(sm.get_status(), "online")
@@ -81,6 +126,46 @@ class TestCoreModules(unittest.TestCase):
         cm.set_active_partner(None)
         self.assertIsNone(cm.get_active_partner())
         self.assertTrue(cm.has_session("duc")) # Background session stays open!
+
+    def test_duplicate_peer_names_no_collision(self):
+        cm = ChatManager()
+        s_b5002 = object()
+        s_b5004 = object()
+        s_c5003 = object()
+
+        # A chats with B:5002
+        cm.add_session(s_b5002, "B", "127.0.0.1", 5002, set_active=True)
+        # C:5003 is also connected in background
+        cm.add_session(s_c5003, "C", "127.0.0.1", 5003, set_active=False)
+
+        self.assertEqual(cm.get_active_partner(), "B")
+        self.assertEqual(cm.get_active_port(), 5002)
+
+        # Another peer also named B connects from port 5004
+        cm.add_session(s_b5004, "B", "127.0.0.1", 5004, set_active=False)
+
+        # Verify B:5002 is still active and intact
+        self.assertEqual(cm.get_active_partner(), "B")
+        self.assertEqual(cm.get_active_port(), 5002)
+        self.assertEqual(cm.session_count(), 3)
+        self.assertTrue(cm.has_session(("127.0.0.1", 5002)))
+        self.assertTrue(cm.has_session(("127.0.0.1", 5004)))
+        self.assertTrue(cm.has_session(("127.0.0.1", 5003)))
+
+        # If B:5002 disconnects (using its specific socket instance)
+        removed_sess = cm.remove_session(sock=s_b5002)
+        self.assertIsNotNone(removed_sess)
+        self.assertEqual(removed_sess["name"], "B")
+        self.assertEqual(removed_sess["port"], 5002)
+
+        # Crucial check: Active partner must NOT randomly jump to C:5003!
+        self.assertIsNone(cm.get_active_partner())
+        self.assertEqual(cm.get_active_port(), 0)
+
+        # Crucial check: B:5004 must NOT be deleted!
+        self.assertTrue(cm.has_session(("127.0.0.1", 5004)))
+        self.assertTrue(cm.has_session(("127.0.0.1", 5003)))
+        self.assertEqual(cm.session_count(), 2)
 
     def test_input_handler(self):
         cmd = InputHandler.parse("/chat Alice")

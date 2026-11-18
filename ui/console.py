@@ -32,9 +32,12 @@ class Console:
         unread_counts: Optional[Dict[str, int]] = None,
         active_partner: Optional[str] = None,
         connected_peers: Optional[List[str]] = None,
+        connected_ports: Optional[List[int]] = None,
+        active_port: Optional[int] = None,
     ) -> None:
         unread_counts = unread_counts or {}
         connected_set = {c.lower() for c in (connected_peers or [])}
+        connected_port_set = set(connected_ports or [])
         active_lower = active_partner.lower() if active_partner else None
 
         print(f"\n[*] Danh sách bạn bè online ({len(peers)}):")
@@ -44,14 +47,18 @@ class Console:
 
         for i, p in enumerate(peers, 1):
             p_lower = p.name.lower()
-            unread = unread_counts.get(p_lower, 0)
+            unread = (
+                unread_counts.get((p.ip, p.tcp_port), 0)
+                or unread_counts.get(p.tcp_port, 0)
+                or unread_counts.get(p_lower, 0)
+            )
             unread_str = f" | [Chưa đọc: {unread}]" if unread > 0 else ""
             status_tag = f"[{p.status.upper()}]"
 
             chat_tag = ""
-            if active_lower and p_lower == active_lower:
+            if (active_port and p.tcp_port == active_port) or (not active_port and active_lower and p_lower == active_lower):
                 chat_tag = " [Đang chat]"
-            elif p_lower in connected_set:
+            elif (p.tcp_port in connected_port_set) or (p_lower in connected_set):
                 chat_tag = " [Đã kết nối]"
 
             print(f"    {i}. [{p.name}] {p.ip}:{p.tcp_port} {status_tag}{chat_tag}{unread_str}")

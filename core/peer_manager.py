@@ -67,6 +67,12 @@ class PeerManager:
                     return peer
         return None
 
+    def find_all_by_name(self, name: str) -> List[Peer]:
+        """Finds all peers matching the given name (case-insensitive)."""
+        target = name.strip().lower()
+        with self._lock:
+            return [peer for peer in self._peers.values() if peer.name.lower() == target]
+
     def find_by_port(self, port: int) -> Optional[Peer]:
         """Finds peer matching a TCP port."""
         with self._lock:
