@@ -384,10 +384,17 @@ def main():
         except Exception as e:
             Console.error(f"Kết nối thất bại tới [{target_name}]: {e}")
 
-    session = PromptSession() if HAS_PROMPT_TOOLKIT else None
+    use_prompt_toolkit = HAS_PROMPT_TOOLKIT
+    session = None
+    if use_prompt_toolkit:
+        try:
+            session = PromptSession()
+        except Exception:
+            session = None
+            use_prompt_toolkit = False
 
     def get_input(prompt_str: str) -> str:
-        if session:
+        if session and use_prompt_toolkit:
             return session.prompt(prompt_str)
         return input(prompt_str)
 
@@ -438,7 +445,7 @@ def main():
             elif cmd.name == "CHAT":
                 target_str = cmd.args.strip()
                 if not target_str:
-                    Console.warning("Cách dùng: /chat <số|tên_bạn|port> (Ví dụ: /chat 1 hoặc /chat Nhan)")
+                    Console.warning("Cách dùng: /chat <số|tên_bạn|port>")
                     continue
 
                 t_ip, t_port, t_name = resolve_peer_target(target_str, peer_mgr, last_listed_peers)
@@ -579,12 +586,6 @@ def main():
                             conversation_partner=partner,
                         )
 
-                        # ======================================================
-                        # XÓA DÒNG NHẬP PHÍA TRÊN ĐỂ TRÁNH TRÙNG LẶP DÒNG INPUT
-                        # ======================================================
-                        sys.stdout.write("\033[A\033[2K\r")
-                        sys.stdout.flush()
-
                         # In tin nhắn đã gửi chuẩn định dạng
                         Console.chat_message(me, cmd.args)
                     except Exception as e:
@@ -593,8 +594,11 @@ def main():
                 else:
                     Console.warning("Bạn chưa chọn người để chat. Gõ /chat <tên_bạn> (ví dụ: /chat Nhan) hoặc /help.")
 
-    if HAS_PROMPT_TOOLKIT:
-        with patch_stdout():
+    if use_prompt_toolkit and session is not None:
+        try:
+            with patch_stdout():
+                run_cli_loop()
+        except Exception:
             run_cli_loop()
     else:
         run_cli_loop()
