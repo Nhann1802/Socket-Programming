@@ -97,3 +97,46 @@ class TCPClient:
             except OSError:
                 pass
             raise
+
+    @staticmethod
+    def send_direct_message(
+        ip: str,
+        tcp_port: int,
+        own_name: str,
+        own_tcp_port: int,
+        message: str,
+        timeout: float = CONNECT_TIMEOUT,
+    ) -> bool:
+        """
+        Sends a single direct message (MSG frame) without establishing a persistent chat session.
+        Useful for unread messages / notification from outside the active room.
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        try:
+            sock.connect((ip, tcp_port))
+            # Handshake with channel="direct_msg"
+            intro_header = {
+                "type": FrameType.INTRO,
+                "name": own_name,
+                "tcp_port": own_tcp_port,
+                "channel": "direct_msg",
+            }
+            send_frame(sock, intro_header, payload=b"")
+
+            # Remote peer acknowledges with INTRO
+            recv_frame(sock)
+
+            # Send MSG frame
+            payload = message.encode("utf-8")
+            msg_header = {"type": FrameType.MSG, "length": len(payload)}
+            send_frame(sock, msg_header, payload=payload)
+            return True
+        except Exception:
+            return False
+        finally:
+            try:
+                sock.close()
+            except OSError:
+                pass
+
