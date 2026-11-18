@@ -7,7 +7,7 @@ from pathlib import Path
 # ==============================================================================
 DEFAULT_UDP_PORT = 9999
 DEFAULT_TCP_PORT = 5001
-DEFAULT_BROADCAST_IP = "255.255.255.255"
+DEFAULT_BROADCAST_IP = "127.255.255.255"
 
 # Heartbeat & Timeout parameters
 HEARTBEAT_INTERVAL = 3.0    # Seconds between UDP HELLO broadcasts

@@ -19,6 +19,7 @@ class TCPServer:
         on_chat_connection: Optional[Callable[[socket.socket, str, int, str], None]] = None,
         on_chat_request: Optional[Callable[[socket.socket, str, int, str], None]] = None,
         on_file_connection: Optional[Callable[[socket.socket, str, int, str], None]] = None,
+        on_direct_msg: Optional[Callable[[socket.socket, str, int, str], None]] = None,
         max_workers: int = 20,
     ):
         self.port = port
@@ -27,6 +28,7 @@ class TCPServer:
         self.on_chat_connection = on_chat_connection
         self.on_chat_request = on_chat_request
         self.on_file_connection = on_file_connection
+        self.on_direct_msg = on_direct_msg
         self.max_workers = max_workers
 
         self._server_sock: Optional[socket.socket] = None
@@ -140,6 +142,8 @@ class TCPServer:
                     self.on_chat_connection(sock, peer_name, advertised_port, client_ip)
                 elif channel == "file" and self.on_file_connection:
                     self.on_file_connection(sock, peer_name, advertised_port, client_ip)
+                elif channel == "direct_msg" and self.on_direct_msg:
+                    self.on_direct_msg(sock, peer_name, advertised_port, client_ip)
                 else:
                     sock.close()
                 return
