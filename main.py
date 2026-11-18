@@ -8,16 +8,13 @@ HƯỚNG DẪN CÁCH CHẠY (HOW TO RUN)
 Để mô phỏng 2 hoặc nhiều người trò chuyện trên cùng một máy tính:
 
 1. Mở Terminal 1 (Ví dụ: Huân):
-   $ cd e:\MMT\Socket-Programming
-   $ python main.py --name Huan --tcp-port 5001
+   python main.py --name Huan --tcp-port 5001
 
 2. Mở Terminal 2 (Ví dụ: Nhân):
-   $ cd e:\MMT\Socket-Programming
-   $ python main.py --name Nhan --tcp-port 5002
+   python main.py --name Nhan --tcp-port 5002
 
 3. Mở Terminal 3 (Ví dụ: Đức):
-   $ cd e:\MMT\Socket-Programming
-   $ python main.py --name Duc --tcp-port 5003
+   python main.py --name Duc --tcp-port 5003
 
 (Tất cả tự động tìm thấy nhau qua UDP Broadcast!)
 
