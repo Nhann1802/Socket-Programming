@@ -42,7 +42,7 @@ class InputHandler:
             elif cmd_name == "/status":
                 return Command(name="STATUS", args=cmd_args)
             elif cmd_name == "/history":
-                return Command(name="HISTORY")
+                return Command(name="HISTORY", args=cmd_args)
             elif cmd_name in ("/help", "/?"):
                 return Command(name="HELP")
             else:

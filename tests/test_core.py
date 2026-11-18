@@ -94,6 +94,10 @@ class TestCoreModules(unittest.TestCase):
         cmd = InputHandler.parse("/leave")
         self.assertEqual(cmd.name, "LEAVE")
 
+        cmd = InputHandler.parse("/history Alice")
+        self.assertEqual(cmd.name, "HISTORY")
+        self.assertEqual(cmd.args, "Alice")
+
         cmd = InputHandler.parse("Xin chao")
         self.assertEqual(cmd.name, "MESSAGE")
         self.assertEqual(cmd.args, "Xin chao")

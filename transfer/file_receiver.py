@@ -57,17 +57,29 @@ class FileReceiver:
                     f"[*] Đang nhận tệp [{safe_filename}] ({total_size / 1024:.1f} KB) từ [{sender_name}]..."
                 )
 
-            # 3. Stream chunks directly to disk
+            # 3. Stream chunks to a temporary .part file
+            temp_path = dest_path.with_suffix(dest_path.suffix + ".part")
             sock.settimeout(30.0)
             remaining = total_size
-            with open(dest_path, "wb") as f:
-                while remaining > 0:
-                    read_len = min(FILE_CHUNK_SIZE, remaining)
-                    chunk = recv_exact(sock, read_len)
-                    f.write(chunk)
-                    remaining -= len(chunk)
-                    if progress.update(len(chunk)) and progress_callback:
-                        progress_callback(progress.format_status())
+            try:
+                with open(temp_path, "wb") as f:
+                    while remaining > 0:
+                        read_len = min(FILE_CHUNK_SIZE, remaining)
+                        chunk = recv_exact(sock, read_len)
+                        f.write(chunk)
+                        remaining -= len(chunk)
+                        if progress.update(len(chunk)) and progress_callback:
+                            progress_callback(progress.format_status())
+
+                # Transfer complete: rename .part to final destination
+                temp_path.replace(dest_path)
+            except Exception:
+                if temp_path.exists():
+                    try:
+                        temp_path.unlink()
+                    except OSError:
+                        pass
+                raise
 
             if progress_callback:
                 progress_callback(f"[✓] Đã nhận thành công [{safe_filename}] và lưu tại: {dest_path}")

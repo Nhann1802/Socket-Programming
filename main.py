@@ -396,9 +396,8 @@ def main():
         global running
         last_listed_peers = []
         while True:
-            # Tạo prompt hiển thị rõ bạn đang ở phòng chat của ai
-            active_name = chat_mgr.get_active_partner()
-            prompt_str = f"[{active_name}] > " if active_name else "> "
+            # Dấu nhắc nhập tin nhắn luôn là '> ' theo đúng yêu cầu đề bài
+            prompt_str = "> "
 
             try:
                 raw_line = get_input(prompt_str)
@@ -545,7 +544,11 @@ def main():
                         message=text,
                     )
                     if ok:
-                        msg_mgr.add_message(Message(sender=me, receiver=label, content=text), is_active_session=True)
+                        msg_mgr.add_message(
+                            Message(sender=me, receiver=label, content=text),
+                            is_active_session=True,
+                            conversation_partner=label,
+                        )
                         Console.success(f"Đã gửi tin nhắn nhanh tới [{label}]: {text}")
                     else:
                         Console.error(f"Không thể gửi tin nhắn nhanh tới [{label}].")
@@ -570,7 +573,11 @@ def main():
                     header = {"type": FrameType.MSG, "length": len(payload)}
                     try:
                         send_frame(s_sock, header, payload, send_lock=s_lock)
-                        msg_mgr.add_message(Message(sender=me, receiver=partner, content=cmd.args), is_active_session=True)
+                        msg_mgr.add_message(
+                            Message(sender=me, receiver=partner, content=cmd.args),
+                            is_active_session=True,
+                            conversation_partner=partner,
+                        )
 
                         # ======================================================
                         # XÓA DÒNG NHẬP PHÍA TRÊN ĐỂ TRÁNH TRÙNG LẶP DÒNG INPUT

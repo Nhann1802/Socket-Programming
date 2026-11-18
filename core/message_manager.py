@@ -13,12 +13,22 @@ class MessageManager:
         self._lock = threading.Lock()
         self.max_history_per_peer = max_history_per_peer
 
-    def add_message(self, message: Message, is_active_session: bool = False) -> None:
+    def add_message(
+        self,
+        message: Message,
+        is_active_session: bool = False,
+        conversation_partner: Optional[str] = None,
+    ) -> None:
         """
         Stores an incoming or outgoing message.
-        If is_active_session is False and sender != receiver, increments unread count.
+        If conversation_partner is provided, stores under that partner's history.
+        Otherwise defaults to message.receiver (if outgoing) or message.sender.
         """
-        peer_key = message.sender.lower()
+        if conversation_partner:
+            peer_key = conversation_partner.lower()
+        else:
+            peer_key = message.sender.lower()
+
         with self._lock:
             if peer_key not in self._history:
                 self._history[peer_key] = []
@@ -27,7 +37,8 @@ class MessageManager:
             if len(self._history[peer_key]) > self.max_history_per_peer:
                 self._history[peer_key].pop(0)
 
-            if not is_active_session:
+            # Only increment unread count for incoming messages not currently active
+            if not is_active_session and message.sender.lower() == peer_key:
                 self._unread_counts[peer_key] = self._unread_counts.get(peer_key, 0) + 1
 
     def get_history(self, peer_name: str) -> List[Message]:

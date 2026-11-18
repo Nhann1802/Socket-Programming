@@ -24,7 +24,7 @@ class Console:
 
     @staticmethod
     def chat_message(sender: str, text: str) -> None:
-        print(f"[{sender}] {text}")
+        print(f"[{sender}]: {text}")
 
     @staticmethod
     def print_peer_list(
