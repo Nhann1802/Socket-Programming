@@ -68,18 +68,7 @@ class UDPBroadcaster:
                 current_status = self.status_provider()
                 packet = encode_hello(self.name, self.tcp_port, current_status)
                 if self._sock:
-                    # 1. Phát ra toàn mạng LAN (255.255.255.255)
-                    try:
-                        self._sock.sendto(packet, (self.broadcast_ip, self.udp_port))
-                    except Exception:
-                        pass
-
-                    # 2. Đồng thời phát tới loopback broadcast nếu cần test nhiều terminal trên cùng 1 máy
-                    if self.broadcast_ip != "127.255.255.255":
-                        try:
-                            self._sock.sendto(packet, ("127.255.255.255", self.udp_port))
-                        except Exception:
-                            pass
+                    self._sock.sendto(packet, (self.broadcast_ip, self.udp_port))
             except Exception:
                 # Silently catch transient network errors so the thread keeps running
                 pass
