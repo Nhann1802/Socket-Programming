@@ -84,7 +84,8 @@ class FileReceiver:
                     chunk = recv_exact(sock, min(FILE_CHUNK_SIZE, remaining))
                     file.write(chunk)
                     remaining -= len(chunk)
-                    progress.update(len(chunk))
+                    if progress.update(len(chunk)) and on_progress:
+                        on_progress(progress)
             if cancel_event and cancel_event.is_set():
                 raise InterruptedError("Đã hủy truyền tệp.")
             destination = FileReceiver._save_unique(temp_path, target_dir, filename)

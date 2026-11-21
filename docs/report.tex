@@ -8,6 +8,9 @@
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb}
 \usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{caption}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{float}
@@ -18,17 +21,19 @@
 \usepackage{tocloft}
 \usepackage[numbib, nottoc]{tocbibind}
 \usepackage[unicode, hidelinks]{hyperref}
-\usetikzlibrary{shapes.geometric, arrows, positioning}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, calc}
 
 % Header and Footer setup
-\setlength{\headheight}{15pt}
+\setlength{\headheight}{18pt}
+\setlength{\headsep}{22pt}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\textit{Đồ án Mạng Máy Tính}}
-\fancyhead[R]{\small\textit{Trường ĐH Khoa học Tự nhiên - ĐHQG-HCM}}
+\fancyhead[L]{\footnotesize\textit{LAN Chat \& File Sharing}}
+\fancyhead[R]{\footnotesize\textit{Đồ án Mạng Máy Tính -- HCMUS}}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
+\captionsetup[table]{justification=centering, singlelinecheck=false, labelfont={bf,color=blue!80!black}, textfont={bf,color=blue!80!black}, skip=6pt}
 
 % Code listing styling
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -89,6 +94,11 @@
 \renewcommand{\cfttabpresnum}{Bảng }
 \renewcommand{\cfttabaftersnum}{.}
 \setlength{\cfttabnumwidth}{4.5em}
+
+% TikZ styles
+\tikzstyle{block} = [rectangle, draw=blue!75!black, fill=blue!5, thick, rounded corners=4pt, text centered, minimum height=2.2em, inner sep=6pt]
+\tikzstyle{arrow} = [thick, ->, >=stealth]
+\tikzstyle{darrow} = [thick, <->, >=stealth]
 
 % ==============================================================================
 % DOCUMENT BEGIN
@@ -155,7 +165,7 @@
 	\pagenumbering{arabic}
 	
 	% ------------------------------------------------------------------------------
-	% SECTION 1: INTRODUCTION
+	% SECTION 1: INTRODUCTION (GIỮ NGUYÊN GỐC)
 	% ------------------------------------------------------------------------------
 	\section{Giới thiệu Tổng quan}
 	
@@ -170,7 +180,7 @@
 	\end{itemize}
 	
 	% ------------------------------------------------------------------------------
-	% SECTION: SYSTEM ARCHITECTURE
+	% SECTION 2: SYSTEM ARCHITECTURE (GIỮ NGUYÊN GỐC)
 	% ------------------------------------------------------------------------------
 	\section{Kiến trúc Hệ thống}
 	
@@ -258,6 +268,273 @@
 	\end{enumerate}
 	
 	% ------------------------------------------------------------------------------
+	% SECTION 3: MÔ HÌNH ĐA LUỒNG (THREAD MODEL)
+	% ------------------------------------------------------------------------------
+	\section{Mô hình Đa luồng (Thread Model)}
+	\label{sec:thread_model}
+	
+	Hệ thống vận hành theo mô hình đa luồng nhằm đảm bảo các hoạt động mạng nền không làm nghẽn giao diện dòng lệnh của người dùng.
+	
+	\subsection{Sơ đồ Tương tác Luồng}
+	Hình~\ref{fig:thread_model} minh họa sự tương tác giữa các luồng nền, nhóm giao vận và kho dữ liệu chia sẻ trong hệ thống:
+	
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}[
+			>=stealth,
+			node distance=0.9cm and 1.1cm,
+			scale=0.93, 
+			transform shape,
+			box/.style={
+				rectangle,
+				draw=blue!75!black,
+				fill=blue!5,
+				thick,
+				rounded corners=3pt,
+				text width=3.4cm,
+				font=\small,
+				align=center,
+				inner sep=5pt
+			},
+			centerbox/.style={
+				rectangle,
+				draw=purple!80!black,
+				fill=purple!6,
+				thick,
+				rounded corners=4pt,
+				text width=4.6cm,
+				align=center,
+				inner sep=5pt
+			},
+			mainbox/.style={
+				rectangle,
+				draw=orange!90!black,
+				fill=orange!10,
+				thick,
+				rounded corners=4pt,
+				text width=4.6cm,
+				align=center,
+				inner sep=5pt
+			},
+			transferbox/.style={
+				rectangle,
+				draw=teal!80!black,
+				fill=teal!8,
+				thick,
+				rounded corners=4pt,
+				text width=4.6cm,
+				align=center,
+				inner sep=5pt
+			}
+		]
+			% Cột trung tâm: Main CLI -> Shared State -> Transfer
+			\node (main) [mainbox] {
+				\textbf{Main CLI Thread}\\[2pt]
+				{\footnotesize Nhập lệnh, render console}
+			};
+			
+			\node (core) [centerbox, below=1.0cm of main] {
+				\textbf{Shared Repositories}\\[2pt]
+				{\footnotesize \texttt{PeerManager}, \texttt{ChatManager},\\\texttt{MessageManager} (Khóa Lock)}
+			};
+			
+			\node (transfer) [transferbox, below=1.0cm of core] {
+				\textbf{File Transfer}\\\textbf{Workers}\\[2pt]
+				{\footnotesize \texttt{FileSender} / \texttt{FileReceiver}\\\textit{(Kênh TCP riêng, khối 64 KiB)}}
+			};
+
+			% Cột trái: Nhóm luồng UDP Discovery
+			\node (broadcaster) [box, left=1.1cm of core] {
+				\textbf{UDPBroadcaster}\\[2pt]
+				{\footnotesize Phát \texttt{HELLO} mỗi 3.0s}
+			};
+			\node (listener) [box, above=0.6cm of broadcaster] {
+				\textbf{UDPListener}\\[2pt]
+				{\footnotesize Lắng nghe UDP Port 9999}
+			};
+			\node (cleanup) [box, below=0.6cm of broadcaster] {
+				\textbf{PeerCleanup}\\
+				\textbf{Thread}\\[2pt]
+				{\footnotesize Quét timeout\\sau 10.0s}
+			};
+
+			% Cột phải: Nhóm luồng TCP Data & Chat
+			\node (acceptor) [box, right=1.1cm of core] {
+				\textbf{TCPAcceptor}\\[2pt]
+				{\footnotesize Lắng nghe cổng TCP chủ}
+			};
+			\node (handshake) [box, above=0.6cm of acceptor] {
+				\textbf{TCPHandshake Workers}\\[2pt]
+				{\footnotesize Pool tối đa 20 luồng}
+			};
+			\node (chat_recv) [box, below=0.6cm of acceptor] {
+				\textbf{ChatReceiver Threads}\\[2pt]
+				{\footnotesize 1 luồng / mỗi phiên chat}
+			};
+
+			% Khung bao nhóm trực quan
+			\node (udp_group) [draw=green!60!black, dashed, thick, rounded corners=6pt, fit=(listener) (broadcaster) (cleanup), label={[green!50!black, font=\bfseries\footnotesize]above:NHÓM LUỒNG UDP}] {};
+			
+			\node (tcp_group) [draw=blue!70!black, dashed, thick, rounded corners=6pt, fit=(handshake) (acceptor) (chat_recv), label={[blue!60!black, font=\bfseries\footnotesize]above:NHÓM LUỒNG TCP}] {};
+
+			% Đường kết nối tương tác
+			\draw [thick, ->] (main) -- node[right, font=\scriptsize] {Điều phối} (core);
+			\draw [thick, <->] (core) -- node[right, font=\scriptsize] {Ghi / Nhận tệp} (transfer);
+			
+			\draw [thick, ->] (listener.east) -- (core.north west);
+			\draw [thick, ->] (broadcaster.east) -- (core.west);
+			\draw [thick, ->] (cleanup.east) -- (core.south west);
+
+			\draw [thick, ->] (acceptor.north) -- (handshake.south);
+			\draw [thick, ->] (handshake.west) -- (core.north east);
+			\draw [thick, <->] (chat_recv.west) -- (core.south east);
+		\end{tikzpicture}
+		\caption{Sơ đồ phân bổ và tương tác giữa các luồng trong hệ thống}
+		\label{fig:thread_model}
+	\end{figure}
+	
+	\subsection{Bảng Thống kê Toàn bộ Luồng Thực thi}
+	Bảng~\ref{tab:thread_summary} thống kê chi tiết các luồng đang chạy trong hệ thống, vòng đời và vai trò nhiệm vụ:
+	
+	\begin{table}[H]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.45}
+		\begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{3.2cm}|>{\centering\arraybackslash}c|>{\centering\arraybackslash}c|X|}
+			\hline
+			\rowcolor{blue!12}
+			\textcolor{blue!80!black}{\textbf{Tên Luồng}} &
+			\textcolor{blue!80!black}{\textbf{Daemon}} &
+			\textcolor{blue!80!black}{\textbf{Kích hoạt}} &
+			\textcolor{blue!80!black}{\textbf{Nhiệm vụ Chức năng}} \\
+			\hline
+			\texttt{MainThread} & Không & Khởi động & Vận hành vòng lặp nhập xuất CLI, phân tích lệnh và điều phối tác vụ. \\
+			\hline
+			\texttt{UDPBroadcaster} & Có & Chu kỳ 3.0s & Đóng gói và phát bản tin \texttt{HELLO} qua socket UDP broadcast. \\
+			\hline
+			\texttt{UDPListener} & Có & Liên tục & Lắng nghe trên cổng UDP 9999, giải mã và thông báo cho \texttt{PeerManager}. \\
+			\hline
+			{\parbox[c]{2.9cm}{\centering\ttfamily PeerCleanup\\Thread}} & Có & Chu kỳ 0.5s & Quét danh bạ, tự động xóa các peer không gửi tín hiệu sau 10.0s. \\
+			\hline
+			\texttt{TCPAcceptor} & Có & Liên tục & Gọi hàm \texttt{accept()} trên socket TCP chủ để đón các kết nối mới. \\
+			\hline
+			\texttt{TCPHandshake-*} & Có & Theo kết nối & Đọc khung \texttt{INTRO} đầu tiên để phân phối socket vào kênh chat hoặc tệp. \\
+			\hline
+			\texttt{ChatReceiver-*} & Có & Theo phiên & Đọc liên tục trên socket TCP của phiên chat để giải mã khung \texttt{MSG}/\texttt{BYE}. \\
+			\hline
+			{\parbox[c]{2.9cm}{\centering\ttfamily FileSender\\Worker}} & Có & Khi gửi tệp & Đọc tệp nhị phân theo từng khối 64 KiB và gửi qua kênh TCP riêng biệt. \\
+			\hline
+			{\parbox[c]{2.9cm}{\centering\ttfamily FileReceiver\\Worker}} & Có & Khi nhận tệp & Đọc dòng byte nhị phân, ghi file tạm \texttt{.part} và đổi tên khi hoàn tất. \\
+			\hline
+		\end{tabularx}
+		\caption{Bảng thống kê các luồng thực thi trong hệ thống}
+		\label{tab:thread_summary}
+	\end{table}
+	
+	\subsection{Cơ chế Đồng bộ Hóa Dữ liệu}
+	Để ngăn chặn xung đột dữ liệu (Race Condition) khi nhiều luồng cùng truy cập:
+	\begin{itemize}
+		\item \textbf{Khóa Repository (\texttt{threading.Lock}):} Sử dụng trong \texttt{PeerManager}, \texttt{ChatManager}, \texttt{MessageManager} để bảo vệ các thao tác đọc/ghi từ điển trạng thái.
+		\item \textbf{Khóa Ghi Socket (\texttt{send\_lock}):} Mỗi kết nối TCP được cấp một khóa độc quyền để tránh việc nhiều luồng cùng ghi đè dữ liệu lên một socket song công.
+		\item \textbf{Cờ Dừng Luồng (\texttt{threading.Event}):} Sử dụng để hủy truyền tệp an toàn hoặc dừng ứng dụng duyên dáng mà không làm rò rỉ socket.
+	\end{itemize}
+	
+	% ------------------------------------------------------------------------------
+	% SECTION 4: PROTOCOL FORMAT
+	% ------------------------------------------------------------------------------
+	\section{Đặc tả Định dạng Giao thức (Protocol Format)}
+	\label{sec:protocol_format}
+	
+	\subsection{Giao thức Khám phá UDP (UDP Presence Protocol)}
+	Gói tin UDP Discovery phát quảng bá tới địa chỉ \texttt{255.255.255.255} trên cổng \texttt{9999}. Dữ liệu được mã hóa dạng chuỗi UTF-8 phân tách bằng ký tự gạch đứng:
+	\begin{center}
+		\fbox{\texttt{HELLO | <PeerName> | <TCP\_Port> | <Status>}}
+	\end{center}
+	
+	\begin{table}[H]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.3}
+		\begin{tabularx}{\textwidth}{|p{2.6cm}|p{2.2cm}|p{2.2cm}|X|}
+			\hline
+			\rowcolor{blue!12}
+			\textcolor{blue!80!black}{\textbf{Trường}} & \textcolor{blue!80!black}{\textbf{Kiểu dữ liệu}} & \textcolor{blue!80!black}{\textbf{Giá trị mẫu}} & \textcolor{blue!80!black}{\textbf{Ý nghĩa}} \\
+			\hline
+			\texttt{Opcode} & Chuỗi & \texttt{"HELLO"} & Mã nhận diện gói tin quảng bá hiện diện. \\
+			\hline
+			\texttt{PeerName} & Chuỗi UTF-8 & \texttt{"Alice"} & Tên định danh của nút (không chứa ký tự \texttt{|}). \\
+			\hline
+			\texttt{TCP\_Port} & Số nguyên & \texttt{5001} & Cổng TCP nút mở lắng nghe kết nối đến. \\
+			\hline
+			\texttt{Status} & Chuỗi & \texttt{"online"} & Trạng thái làm việc (\texttt{"online"} hoặc \texttt{"away"}). \\
+			\hline
+		\end{tabularx}
+		\caption{Đặc tả gói tin UDP Discovery}
+		\label{tab:udp_format}
+	\end{table}
+	
+	\subsection{Giao thức Đóng khung TCP (TCP Framing Protocol)}
+	
+	\subsubsection{Cấu trúc Khung Nhị phân (Binary Framing Layout)}
+	Để khắc phục hiện tượng phân mảnh và dính gói của TCP, mỗi thông điệp được đóng khung với tiền tố độ dài nhị phân cố định 4 byte:
+	
+	\begin{figure}[H]
+		\centering
+		\begin{tikzpicture}[
+			field/.style={rectangle, draw=black!80, thick, minimum height=2.6em, text centered},
+			lenfield/.style={field, fill=blue!15, text width=3.4cm},
+			jsonfield/.style={field, fill=green!15, text width=5.6cm},
+			payloadfield/.style={field, fill=orange!15, text width=4.8cm}
+			]
+			\node (len) [lenfield] {\textbf{Header Length}\\\footnotesize(4 Bytes, Big-Endian \texttt{!I})};
+			\node (json) [jsonfield, right=0cm of len] {\textbf{JSON Header Metadata}\\\footnotesize($L$ Bytes UTF-8, tối đa 8 KiB)};
+			\node (payload) [payloadfield, right=0cm of json] {\textbf{Payload (Tùy chọn)}\\\footnotesize($P$ Bytes, Text hoặc Dữ liệu thô)};
+			
+			\draw[<->, >=stealth, thick] ($(len.north west)+(0,0.2)$) -- node[above]{\footnotesize 4 Bytes} ($(len.north east)+(0,0.2)$);
+			\draw[<->, >=stealth, thick] ($(json.north west)+(0,0.2)$) -- node[above]{\footnotesize $L$ Bytes} ($(json.north east)+(0,0.2)$);
+			\draw[<->, >=stealth, thick] ($(payload.north west)+(0,0.2)$) -- node[above]{\footnotesize $P$ Bytes} ($(payload.north east)+(0,0.2)$);
+		\end{tikzpicture}
+		\caption{Cấu trúc đóng khung dữ liệu nhị phân trên giao thức TCP}
+		\label{fig:tcp_framing_layout}
+	\end{figure}
+	
+	\subsubsection{Bảng Thống kê Các Loại Khung Giao thức TCP}
+	Bảng~\ref{tab:tcp_frames} liệt kê toàn bộ các kiểu khung được định nghĩa qua trường \texttt{"type"} trong tiêu đề JSON:
+	
+	\begin{table}[H]
+		\centering
+		\small
+		\renewcommand{\arraystretch}{1.3}
+		\begin{tabularx}{\textwidth}{|p{2.5cm}|p{4.6cm}|X|}
+			\hline
+			\rowcolor{blue!12}
+			\textcolor{blue!80!black}{\textbf{Loại Khung}} & \textcolor{blue!80!black}{\textbf{Tiêu đề JSON Mẫu}} & \textcolor{blue!80!black}{\textbf{Mục đích \& Tải trọng (Payload)}} \\
+			\hline
+			\texttt{INTRO} & \texttt{\{"type":"INTRO", "name":"...", "channel":"..."\}} & Bắt tay định danh; phân loại kênh chat (\texttt{"chat"}) hoặc tệp (\texttt{"file"}). Không kèm payload. \\
+			\hline
+			\texttt{CHAT\_REQ} & \texttt{\{"type":"CHAT\_REQ", "name":"..."\}} & Gửi yêu cầu thiết lập phiên trò chuyện tới bạn bè. Không kèm payload. \\
+			\hline
+			\texttt{CHAT\_RESP} & \texttt{\{"type":"CHAT\_RESP", "status":"accept"\}} & Phản hồi đồng ý (\texttt{accept}) hoặc từ chối (\texttt{reject}) yêu cầu chat. \\
+			\hline
+			\texttt{MSG} & \texttt{\{"type":"MSG", "length": N\}} & Gửi tin nhắn văn bản; Payload là $N$ bytes chuỗi UTF-8. \\
+			\hline
+			\texttt{FILE} & \texttt{\{"type":"FILE", "filename":"...", "size": N\}} & Khởi tạo truyền tệp; Payload theo sau là $N$ bytes nhị phân đọc từ đĩa. \\
+			\hline
+			\texttt{BYE} & \texttt{\{"type":"BYE"\}} & Thông báo ngắt phiên trò chuyện lịch sự trước khi đóng socket. \\
+			\hline
+		\end{tabularx}
+		\caption{Đặc tả các loại khung dữ liệu giao thức TCP}
+		\label{tab:tcp_frames}
+	\end{table}
+	
+	\subsubsection{Quy tắc Giải mã \& Truyền Khối}
+	\begin{itemize}
+		\item \textbf{Đọc chính xác dòng byte (\texttt{recv\_exact}):} Hàm liên tục tích lũy dữ liệu qua nhiều lần gọi \texttt{recv()} cho đến khi nhận đủ chính xác độ dài yêu cầu, giải quyết triệt để lỗi phân mảnh TCP.
+		\item \textbf{Giới hạn phòng vệ an toàn:} Tiêu đề JSON bị giới hạn tối đa \texttt{MAX\_HEADER\_SIZE = 8 KiB}; tin nhắn văn bản giới hạn \texttt{MAX\_MSG\_SIZE = 64 KiB}.
+		\item \textbf{Truyền tệp theo khối nhị phân (\texttt{CHUNK\_SIZE} = 64 KiB):} Dữ liệu tệp được bơm tuần hoàn theo từng khối nhỏ để tránh tràn bộ nhớ RAM và cập nhật thanh tiến trình theo thời gian thực.
+	\end{itemize}
+	
+	% ------------------------------------------------------------------------------
 	% REFERENCES
 	% ------------------------------------------------------------------------------
 	\newpage
@@ -267,6 +544,19 @@
 		\textit{Socket --- Low-level networking interface}, Python 3 Documentation, 2026.\\
 		\url{https://docs.python.org/3/library/socket.html}
 		
+		\bibitem{kurose_ross} 
+		James F. Kurose and Keith W. Ross, 
+		\textit{Computer Networking: A Top-Down Approach}, 8th Edition, Pearson, 2021.
+		
+		\bibitem{rfc_tcp} 
+		Information Sciences Institute, University of Southern California, 
+		\textit{Transmission Control Protocol (RFC 793)}, IETF, 1981.\\
+		\url{https://datatracker.ietf.org/doc/html/rfc793}
+		
+		\bibitem{rfc_udp} 
+		David P. Reed, 
+		\textit{User Datagram Protocol (RFC 768)}, IETF, 1980.\\
+		\url{https://datatracker.ietf.org/doc/html/rfc768}
 	\end{thebibliography}
 	
 \end{document}

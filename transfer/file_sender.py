@@ -52,7 +52,8 @@ class FileSender:
                         raise OSError("Tệp nguồn đã bị thay đổi trong lúc gửi.")
                     sock.sendall(chunk)
                     remaining -= len(chunk)
-                    progress.update(len(chunk))
+                    if progress.update(len(chunk)) and on_progress:
+                        on_progress(progress)
                 if cancel_event and cancel_event.is_set():
                     raise InterruptedError("Đã hủy truyền tệp.")
             if progress_callback:

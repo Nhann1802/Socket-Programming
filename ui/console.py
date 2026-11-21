@@ -9,12 +9,26 @@ class Console:
     Console presentation formatting and message display helper.
     """
     _lock = threading.Lock()
+    _in_progress = False
 
     @staticmethod
     def write_line(message: str = "") -> None:
         with Console._lock:
+            if Console._in_progress:
+                # Xóa dòng progress bar đang chạy trước khi in dòng mới
+                sys.stdout.write("\r" + " " * 79 + "\r")
+                Console._in_progress = False
             sys.stdout.write(str(message) + "\n")
             sys.stdout.flush()
+
+    @staticmethod
+    def write_progress(message: str = "") -> None:
+        with Console._lock:
+            # Ghi đè trên cùng 1 dòng và đệm khoảng trắng (tránh lỗi hiển thị ký tự ?[K trên Windows)
+            padded = str(message).ljust(78)
+            sys.stdout.write(f"\r{padded}")
+            sys.stdout.flush()
+            Console._in_progress = True
 
     @staticmethod
     def info(msg: str) -> None:

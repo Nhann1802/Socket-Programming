@@ -192,10 +192,16 @@ def main():
 
     # Khởi tạo TransferManager (Tầng Transfer)
     progress_display = ProgressDisplay()
+
+    def handle_transfer_progress(progress):
+        progress_display.update(progress)
+        if not progress.finished:
+            Console.write_progress(f"[*] {progress.render_bar(55)}")
+
     transfer_mgr = TransferManager(
         download_dir=DEFAULT_DOWNLOAD_DIR,
         on_notify=Console.write_line,
-        on_progress=progress_display.update if HAS_PROMPT_TOOLKIT else None,
+        on_progress=handle_transfer_progress,
     )
 
     # 3. Hàm nhận tin nhắn ngầm từ bạn chat qua TCP
@@ -415,7 +421,7 @@ def main():
     session = None
     if use_prompt_toolkit:
         try:
-            session = PromptSession(bottom_toolbar=progress_display.render, refresh_interval=0.1)
+            session = PromptSession(erase_when_done=True)
         except Exception:
             session = None
             use_prompt_toolkit = False
@@ -425,7 +431,10 @@ def main():
     def get_input(prompt_str: str) -> str:
         if session and use_prompt_toolkit:
             return session.prompt(prompt_str)
-        return input(prompt_str)
+        line = input(prompt_str)
+        sys.stdout.write("\033[A\033[2K\r")
+        sys.stdout.flush()
+        return line
 
     # 11. Vòng lặp chính xử lý lệnh
     def run_cli_loop():
