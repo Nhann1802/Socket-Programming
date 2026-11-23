@@ -29,7 +29,14 @@ class UDPListener:
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
         self._sock: Optional[socket.socket] = None
-        self._local_ips = {"127.0.0.1", get_local_ip()}
+        self._local_ips = {"127.0.0.1"}
+        try:
+            self._local_ips.add(get_local_ip())
+            for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+                if info[4][0]:
+                    self._local_ips.add(info[4][0])
+        except Exception:
+            pass
 
     def start(self) -> None:
         """Binds to UDP port with address reuse and starts listener thread."""
@@ -94,9 +101,12 @@ class UDPListener:
             if is_self:
                 continue
 
+            # Normalize local machine peer IPs to 127.0.0.1 to avoid duplicates from multiple network adapters
+            peer_ip = "127.0.0.1" if src_ip in self._local_ips else src_ip
+
             # Notify discovery layer
             try:
-                self.on_peer_discovered(name, src_ip, tcp_port, status)
+                self.on_peer_discovered(name, peer_ip, tcp_port, status)
             except Exception:
                 # Listener must remain resilient to callback errors
                 pass

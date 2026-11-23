@@ -1,38 +1,4 @@
 r"""
-LAN Chat & File Sharing — Ứng dụng P2P Mạng LAN Hoàn Chỉnh
-Bao gồm: UDP Discovery, TCP Framing, P2P Chat đa luồng, File Transfer riêng biệt
-
-================================================================================
-HƯỚNG DẪN CÁCH CHẠY (HOW TO RUN)
-================================================================================
-Để mô phỏng 2 hoặc nhiều người trò chuyện trên cùng một máy tính:
-
-1. Mở Terminal 1 (Ví dụ: Huân):
-   python main.py --name Huan --tcp-port 5001
-
-2. Mở Terminal 2 (Ví dụ: Nhân):
-   python main.py --name Nhan --tcp-port 5002
-
-3. Mở Terminal 3 (Ví dụ: Đức):
-   python main.py --name Duc --tcp-port 5003
-
-(Tất cả tự động tìm thấy nhau qua UDP Broadcast!)
-
-================================================================================
-CÁCH HOẠT ĐỘNG CHAT & TIN NHẮN CHƯA ĐỌC (UNREAD):
-================================================================================
-- Huân gõ `/chat Nhan` để mở phòng trò chuyện với Nhân.
-- Lúc này Đức cũng kết nối và gửi tin nhắn cho Huân:
-  -> Kết nối giữa Đức và Huân TỰ ĐỘNG THIẾT LẬP (không bị từ chối / reject).
-  -> Vì Huân đang mở phòng chat với Nhân, tin nhắn từ Đức sẽ tự động lưu vào
-     danh sách UNREAD và hiện thông báo:
-     `[*] [Tin nhắn chưa đọc từ Duc]: Alo Huân ơi! (Gõ /chat Duc để trả lời)`
-  -> Huân gõ `/list` sẽ thấy:
-     `    - [Duc] 127.0.0.1:5003 [ONLINE] [Đã kết nối] | [Chưa đọc: 1]`
-     `    - [Nhan] 127.0.0.1:5002 [ONLINE] [Đang chat]`
-  -> Huân gõ `/chat Duc` để chuyển tiêu điểm sang Đức, lập tức đọc tin nhắn
-     và số chưa đọc trở về 0!
-
 ================================================================================
 CÁC LỆNH SỬ DỤNG TRONG CHƯƠNG TRÌNH:
 ================================================================================
