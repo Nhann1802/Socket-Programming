@@ -74,14 +74,14 @@ Khi máy không có mạng bên ngoài, hệ điều hành sẽ vô hiệu hóa 
 1. **Xem bạn bè online:** `/list`
 2. **Mở phòng chat:** `/chat <tên | port | số_thứ_tự>` (Ví dụ: `/chat Duc`, `/chat 5002` hoặc `/chat 1`)
 3. **Nhắn tin:** Gõ nội dung tin nhắn và nhấn Enter.
-4. **Gửi file:** `/send <đường_dẫn_tệp>` (Ví dụ: `/send README.md`). Tệp nhận sẽ được lưu tự động tại `storage/downloads/`.
+4. **Gửi file:** `/send <đường_dẫn_tệp>` (Ví dụ: `/send README.md`). Tệp nhận sẽ được lưu tự động tại `downloads/`.
 5. **Rời phòng chat hiện tại:** `/leave` (tin nhắn đến sau đó sẽ lưu vào danh sách Chưa đọc).
 6. **Thoát chương trình:** `/quit` (hủy lượt truyền đang chạy nếu có, dọn file tạm rồi thoát).
 
 ---
 
 ### 4. Quy tắc an toàn truyền tệp & giao diện (Transfer & UI)
-- Giới hạn mỗi tệp là **10 GiB**. Tệp nhận nằm trong thư mục `storage/downloads/`.
+- Giới hạn mỗi tệp là **10 GiB**. Tệp nhận nằm trong thư mục `downloads/`.
 - Tên tệp không hợp lệ được đổi theo quy tắc Windows; dòng kết quả hiển thị đường dẫn thực tế.
 - Tệp trùng tên được tự động đánh số thêm `_1`, `_2`... và mỗi lượt nhận có file tạm `.part` riêng biệt.
 - Nếu quá trình truyền bị lỗi hoặc người dùng gõ `/quit`, file tạm `.part` của lượt đó sẽ được xóa tự động. (Tắt cưỡng bức tiến trình hoặc mất điện không đảm bảo dọn file tạm).

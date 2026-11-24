@@ -30,7 +30,7 @@ MAX_FILE_SIZE = 10 * 1024 ** 3   # Giới hạn mỗi tệp: 10 GiB.
 # STORAGE & PATH CONFIGURATION
 # ==============================================================================
 BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_DOWNLOAD_DIR = str(BASE_DIR / "storage" / "downloads")
+DEFAULT_DOWNLOAD_DIR = str(BASE_DIR / "downloads")
 
 
 def validate_port(port: int) -> bool:

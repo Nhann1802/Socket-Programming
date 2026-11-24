@@ -113,7 +113,6 @@ class TCPServer:
                     send_frame(sock, {
                         "type": FrameType.CHAT_RESP,
                         "name": self.own_name,
-                        "status": "accept"
                     })
                     self.on_chat_connection(sock, peer_name, advertised_port, client_ip)
                 elif self.on_chat_request:

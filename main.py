@@ -5,7 +5,7 @@ CÁC LỆNH SỬ DỤNG TRONG CHƯƠNG TRÌNH:
 - /list                    : Xem danh sách bạn bè online, trạng thái kết nối & tin chưa đọc
 - /chat <tên|port|ip:port> : Mở hoặc chuyển đổi tiêu điểm chat sang bạn đó
 - /send <đường_dẫn_file>   : Gửi file tới người đang chat (Ví dụ: /send README.md)
-                             File nhận sẽ tự động lưu vào: storage/downloads/
+                             File nhận sẽ tự động lưu vào thư mục: downloads/
 - /leave                   : Rời phòng chat hiện tại (tin nhắn đến sau đó sẽ là Chưa đọc)
 - /status <online|away>    : Đổi trạng thái hiển thị của bạn
 - /history [tên_bạn]       : Xem lịch sử tin nhắn
