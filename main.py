@@ -24,7 +24,7 @@ from config import (
 )
 from ui.console import Console
 from app import ChatApp
-from cli import CLI, resolve_peer_target  # noqa: F401  (resolve_peer_target is re-exported: tests import it from main)
+from cli import CLI, resolve_peer_target
 
 
 def main():
