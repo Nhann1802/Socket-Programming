@@ -233,7 +233,7 @@ def main():
         except OSError:
             pass
 
-    # 4. Callback khi có kết nối chat đến (TỰ ĐỘNG CHẤP NHẬN - Không chặn / Không bắt reject)
+    # 4. Callback khi có kết nối chat đến:
     def on_incoming_chat_connection(sock: socket.socket, peer_name: str, advertised_port: int, client_ip: str):
         # Đăng ký session vào ChatManager theo (ip, port) duy nhất
         chat_mgr.add_session(
@@ -607,7 +607,10 @@ def main():
                 ).start()
 
             elif cmd.name == "UNKNOWN":
-                Console.warning(f"Lệnh không hợp lệ: '{cmd.args}'. Gõ /help để xem hướng dẫn.")
+                if cmd.args in ("/accept", "/reject", "/y", "/n"):
+                    Console.info("Lệnh /accept và /reject đã được gỡ bỏ vì các kết nối chat hiện tại được tự động chấp nhận.")
+                else:
+                    Console.warning(f"Lệnh không hợp lệ: '{cmd.args}'. Gõ /help để xem hướng dẫn.")
 
             elif cmd.name == "MESSAGE":
                 active_session = chat_mgr.get_active_session()

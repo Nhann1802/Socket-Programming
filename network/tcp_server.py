@@ -103,22 +103,21 @@ class TCPServer:
             header, _ = recv_frame(sock)
             frame_type = header.get("type")
 
-            # 1. New Chat Request Flow (Requires Accept/Reject)
+            # 1. Chat Request Flow :
             if frame_type == FrameType.CHAT_REQ:
                 peer_name = header.get("name", "Unknown")
                 advertised_port = int(header.get("tcp_port", 0))
                 sock.settimeout(None)
 
-                if self.on_chat_request:
-                    self.on_chat_request(sock, peer_name, advertised_port, client_ip)
-                elif self.on_chat_connection:
-                    # Fallback auto-accept
+                if self.on_chat_connection:
                     send_frame(sock, {
                         "type": FrameType.CHAT_RESP,
                         "name": self.own_name,
                         "status": "accept"
                     })
                     self.on_chat_connection(sock, peer_name, advertised_port, client_ip)
+                elif self.on_chat_request:
+                    self.on_chat_request(sock, peer_name, advertised_port, client_ip)
                 else:
                     sock.close()
                 return

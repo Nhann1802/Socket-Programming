@@ -31,10 +31,6 @@ class InputHandler:
                 return Command(name="CHAT", args=cmd_args)
             elif cmd_name in ("/msg", "/tell"):
                 return Command(name="DIRECT_MSG", args=cmd_args)
-            elif cmd_name in ("/accept", "/y"):
-                return Command(name="ACCEPT")
-            elif cmd_name in ("/reject", "/n"):
-                return Command(name="REJECT")
             elif cmd_name == "/send":
                 return Command(name="SEND", args=cmd_args)
             elif cmd_name == "/leave":
