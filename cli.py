@@ -1,9 +1,3 @@
-"""
-CLI: giao diện dòng lệnh của LAN Chat.
-
-Đọc dòng người dùng gõ, hiểu các lệnh (/chat, /send, /list, ...) rồi nhờ ChatApp (app.py) làm việc thật.
-"""
-
 import os
 import sys
 import threading
