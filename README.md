@@ -1,4 +1,5 @@
 ﻿# Socket Programming — LAN Chat & File Sharing
+---
 
 ## Thông tin đồ án
 
@@ -13,6 +14,9 @@
 | 1 | Nguyễn Đăng Huỳnh Nhân | 25127221 |
 | 2 | Đào Vạn Đức | 25127036 |
 | 3 | Nguyễn Minh Huân | 25127050 |
+
+---
+
 ## Chạy và kiểm thử
 
 Dùng Python 3.10 trở lên và terminal tương tác:
@@ -29,9 +33,9 @@ Dùng `/list`, `/chat B`, nhập tin nhắn và `/send <đường_dẫn_tệp>`.
 `/quit` hủy lượt truyền đang chạy, dọn file tạm rồi thoát.
 
 Giới hạn mỗi tệp là **10 GiB**. Tệp nhận nằm trong `storage/downloads/`.
-Tên không hợp lệ được đổi theo quy tắc Windows; dòng kết quả hiển thị đường dẫn thực tế.
-Tệp trùng tên được thêm `_1`, `_2`... và mỗi lượt nhận có file tạm riêng.
-Nếu truyền lỗi hoặc `/quit`, file tạm của lượt đó được xóa. Tắt cưỡng bức tiến trình hoặc mất điện không đảm bảo dọn file tạm.
+- Tên không hợp lệ được đổi theo quy tắc Windows; dòng kết quả hiển thị đường dẫn thực tế.
+- Tệp trùng tên được thêm `_1`, `_2`... và mỗi lượt nhận có file tạm riêng.
+- Nếu truyền lỗi hoặc `/quit`, file tạm của lượt đó được xóa. Tắt cưỡng bức tiến trình hoặc mất điện không đảm bảo dọn file tạm.
 
 Khi có `prompt_toolkit`, mỗi lượt gửi/nhận có một thanh ở dưới dòng nhập, cập nhật khoảng 10 lần/giây.
 Chat và thông báo vẫn hiển thị, giữ nguyên nội dung đang gõ.
