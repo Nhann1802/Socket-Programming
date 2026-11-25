@@ -1,10 +1,3 @@
-"""
-ChatApp: lõi của chương trình LAN Chat — lo mạng và dữ liệu.
-
-Dựng các manager, nhận tin nhắn / file đến, kết nối tới bạn bè, dọn dẹp khi thoát.
-Không biết người dùng gõ lệnh gì (phần đó thuộc cli.py).
-"""
-
 import socket
 import threading
 import time
