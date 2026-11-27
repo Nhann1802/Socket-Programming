@@ -27,9 +27,7 @@ python -m pip install prompt_toolkit
 
 # Sử dụng
 
-### 1. Nếu có kết nối mạng (Wi-Fi / LAN / Radmin VPN)
-
-#### a) Chạy nhiều terminal trên CÙNG 1 MÁY TÍNH
+#### 1. Chạy nhiều terminal trên CÙNG 1 MÁY TÍNH
 Mỗi terminal cần lắng nghe trên một cổng TCP khác nhau để tránh xung đột cổng:
 - **Terminal 1 (Ví dụ: Nhân):**
   ```powershell
@@ -41,7 +39,7 @@ Mỗi terminal cần lắng nghe trên một cổng TCP khác nhau để tránh 
   ```
 *(Ghi chú: Nếu không truyền `--tcp-port` ở terminal thứ 2, ứng dụng sẽ tự động dò và chọn cổng rảnh tiếp theo như 5002, 5003...)*
 
-#### b) Chạy trên 2 MÁY TÍNH KHÁC NHAU (chung mạng LAN / Wi-Fi)
+#### 2. Chạy trên 2 MÁY TÍNH KHÁC NHAU (chung mạng LAN / Wi-Fi)
 Vì mỗi máy tính có địa chỉ IP riêng biệt nên có thể chạy lệnh trực tiếp mà không lo trùng cổng:
 - **Máy A:**
   ```powershell
@@ -52,21 +50,6 @@ Vì mỗi máy tính có địa chỉ IP riêng biệt nên có thể chạy l�
   python main.py --name Duc
   ```
 *(Hai máy sẽ tự động tìm thấy nhau qua giao thức UDP Broadcast trên cổng 9999).*
-
----
-
-### 2. Nếu KHÔNG CÓ KẾT NỐI MẠNG (Offline / Chế độ máy bay / Không có Wi-Fi & LAN)
-
-Khi máy không có mạng bên ngoài, hệ điều hành sẽ vô hiệu hóa broadcast ra các card mạng vật lý. Để kiểm thử hoặc chạy nhiều terminal trên cùng một máy mà không cần mạng, sử dụng địa chỉ broadcast Loopback nội bộ `127.255.255.255`:
-- **Terminal 1:**
-  ```powershell
-  python main.py --name Nhan --tcp-port 5001 --broadcast-ip 127.255.255.255
-  ```
-- **Terminal 2:**
-  ```powershell
-  python main.py --name Duc --tcp-port 5002 --broadcast-ip 127.255.255.255
-  ```
-*(Tất cả cơ chế phát hiện bạn bè UDP, kết nối trò chuyện TCP và truyền tệp vẫn hoạt động độc lập ngay trên dải mạng Loopback của máy).*
 
 ---
 
